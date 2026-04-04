@@ -2,6 +2,7 @@ global using Core.Entities;
 global using Infrastructure;
 global using Infrastructure.Data;
 global using Microsoft.EntityFrameworkCore;
+using Core.Interfaces;
 using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +12,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
 builder.Services.AddDbContext<StoreContext>(opt =>
 {
