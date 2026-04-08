@@ -6,7 +6,7 @@ namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductsController(IGenericRepository<Product> repo) : ControllerBase
+    public class ProductsController(IGenericRepository<Product> repo) : BaseApiController
     {
         [HttpGet]
         public async Task<ActionResult<IReadOnlyList<Product>>> GetProducts([FromQuery] ProductSpecParams productParams)
@@ -15,7 +15,8 @@ namespace API.Controllers
 
             var products = await repo.ListAsync(spec);
 
-            return Ok(products);
+            return await CreatePagedResult(repo, spec,
+                productParams.PageIndex, productParams.PageSize);
         }
 
 
