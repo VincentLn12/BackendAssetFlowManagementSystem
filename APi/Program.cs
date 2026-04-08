@@ -2,6 +2,7 @@ global using Core.Entities;
 global using Infrastructure;
 global using Infrastructure.Data;
 global using Microsoft.EntityFrameworkCore;
+using API.Middleware;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Identity;
 
@@ -40,6 +41,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseCors(x => x
     .AllowAnyHeader()
