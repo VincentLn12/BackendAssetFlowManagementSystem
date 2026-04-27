@@ -4,6 +4,7 @@ global using Infrastructure.Data;
 global using Microsoft.EntityFrameworkCore;
 using API.Middleware;
 using Core.Interfaces;
+using Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,6 +31,8 @@ builder.Services.AddIdentityApiEndpoints<AppUser>()
 
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<ICartService, CartService>();
+
 
 var app = builder.Build();
 
