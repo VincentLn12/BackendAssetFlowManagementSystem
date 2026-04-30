@@ -1,9 +1,10 @@
 using Core.Entities;
 using Core.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data;
 
-//3.SpecificationEvaluator – คลาสที่เอา spec มาสร้าง query จริง (IQueryable<T>)
+
 public class SpecificationEvaluator<T> where T : BaseEntity
 {
     public static IQueryable<T> GetQuery(IQueryable<T> query, ISpecification<T> spec)
@@ -23,16 +24,27 @@ public class SpecificationEvaluator<T> where T : BaseEntity
             query = query.OrderByDescending(spec.OrderByDescending);
         }
 
+        if (spec.IsDistinct)
+        {
+            query = query.Distinct();
+        }
+
         if (spec.IsPagingEnabled)
         {
             query = query.Skip(spec.Skip).Take(spec.Take);
         }
 
+        query = spec.Includes.Aggregate(query, (current, include) =>
+            current.Include(include));
+
+        query = spec.IncludeStrings.Aggregate(query, (current, include) =>
+            current.Include(include));
+
         return query;
     }
 
     public static IQueryable<TResult> GetQuery<TSpec, TResult>(IQueryable<T> query,
-    ISpecification<T, TResult> spec)
+        ISpecification<T, TResult> spec)
     {
         if (spec.Criteria != null)
         {
@@ -68,5 +80,4 @@ public class SpecificationEvaluator<T> where T : BaseEntity
 
         return selectQuery ?? query.Cast<TResult>();
     }
-
 }
