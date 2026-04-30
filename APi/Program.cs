@@ -3,6 +3,7 @@ global using Infrastructure;
 global using Infrastructure.Data;
 global using Microsoft.EntityFrameworkCore;
 using API.Middleware;
+using API.SignalR;
 using Core.Interfaces;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
@@ -34,6 +35,7 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddSignalR();
 
 
 var app = builder.Build();
@@ -59,6 +61,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapGroup("api").MapIdentityApi<AppUser>();
+app.MapHub<NotificationHub>("/hub/notifications");
 
 try
 {
