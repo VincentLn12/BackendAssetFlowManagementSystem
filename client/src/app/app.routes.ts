@@ -21,8 +21,11 @@ export const routes: Routes = [
   { path: 'shop', component: ShopComponent },
   { path: 'shop/:id', component: ProductDetailsComponent },
   { path: 'checkout', component: CheckoutComponent, canActivate: [authGuard, emptyCartGuard] },
-  { path: 'checkout/success', component: CheckoutSuccessComponent, 
-    canActivate: [authGuard, orderCompleteGuard] },
+  {
+    path: 'checkout/success',
+    component: CheckoutSuccessComponent,
+    canActivate: [authGuard, orderCompleteGuard],
+  },
   { path: 'orders', component: OrderComponent, canActivate: [authGuard] },
   { path: 'orders/:id', component: OrderDetailedComponent, canActivate: [authGuard] },
   { path: 'account/login', component: LoginComponent },
@@ -31,6 +34,5 @@ export const routes: Routes = [
   { path: 'test-error', component: TestErrorComponent },
   { path: 'server-error', component: ServerErrorComponent },
   { path: 'not-found', component: NotFoundComponent },
-  { path: '**', redirectTo: 'not-found', pathMatch: 'full' }
+  { path: '**', redirectTo: 'not-found', pathMatch: 'full' },
 ];
-
