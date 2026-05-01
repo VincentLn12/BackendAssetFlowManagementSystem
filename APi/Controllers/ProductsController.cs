@@ -1,5 +1,6 @@
 ﻿using Core.Interfaces;
 using Core.Specifications;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
@@ -26,6 +27,7 @@ public class ProductsController(IUnitOfWork unit) : BaseApiController
         return product;
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<ActionResult<Product>> CreateProduct(Product product)
     {
@@ -34,11 +36,13 @@ public class ProductsController(IUnitOfWork unit) : BaseApiController
         if (await unit.Complete())
         {
             return CreatedAtAction("GetProduct", new { id = product.Id }, product);
-        };
+        }
+        ;
 
         return BadRequest("Problem creating product");
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateProduct(int id, Product product)
     {
@@ -49,11 +53,13 @@ public class ProductsController(IUnitOfWork unit) : BaseApiController
         if (await unit.Complete())
         {
             return NoContent();
-        };
+        }
+        ;
 
         return BadRequest("Problem updating the product");
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteProduct(int id)
     {
@@ -66,7 +72,8 @@ public class ProductsController(IUnitOfWork unit) : BaseApiController
         if (await unit.Complete())
         {
             return NoContent();
-        };
+        }
+        ;
 
         return BadRequest("Problem deleting the product");
     }
@@ -78,7 +85,7 @@ public class ProductsController(IUnitOfWork unit) : BaseApiController
 
         return Ok(await unit.Repository<Product>().ListAsync(spec));
     }
-    
+
     [HttpGet("types")]
     public async Task<ActionResult<IReadOnlyList<string>>> GetTypes()
     {
@@ -86,7 +93,7 @@ public class ProductsController(IUnitOfWork unit) : BaseApiController
 
         return Ok(await unit.Repository<Product>().ListAsync(spec));
     }
-    
+
     private bool ProductExists(int id)
     {
         return unit.Repository<Product>().Exists(id);

@@ -3,7 +3,8 @@ export type User = {
   lastName: string;
   email: string;
   address: Address;
-}
+  roles: string | string[];
+};
 
 export type Address = {
   line1: string;
@@ -12,4 +13,4 @@ export type Address = {
   state: string;
   country: string;
   postalCode: string;
-}
+};
