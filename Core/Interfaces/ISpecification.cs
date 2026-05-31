@@ -18,7 +18,6 @@ public interface ISpecification<T>
     IQueryable<T> ApplyCriteria(IQueryable<T> query);
 }
 
-//Projection (การแปลงผลลัพธ์จาก Entity T ไปเป็นประเภทผลลัพธ์ TResult) เช่น DTO หรือ ViewModel โดยตรงจาก Database
 public interface ISpecification<T, TResult> : ISpecification<T>
 {
     Expression<Func<T, TResult>>? Select { get; }

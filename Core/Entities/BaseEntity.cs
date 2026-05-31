@@ -2,6 +2,8 @@
 
 public class BaseEntity
 {
-    public int Id { get; set; }
-}
+    public bool is_active { get; set; } = false;
+    public DateTime created_at { get; set; } = DateTime.UtcNow;
+    public DateTime? updated_at { get; set; } = null;
+};
 

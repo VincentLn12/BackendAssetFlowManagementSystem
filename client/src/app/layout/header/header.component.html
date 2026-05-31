@@ -1,51 +1,464 @@
-<header class="shadow-md max-h-20 p-3 w-full fixed top-0 bg-white z-50">
-  <div
-      class="flex align-middle items-center justify-between max-w-screen-2xl mx-auto">
-    <img routerLink="/" src="/images/logo.png" alt="app logo" class="max-h-16">
-    <nav class="flex gap-3 my-2 uppercase text-2xl">
-      <a routerLink="/" routerLinkActive="active"
-          [routerLinkActiveOptions]="{exact: true}">Home</a>
-      <a routerLink="/shop" routerLinkActive="active">Shop</a>
-      <a routerLink="/test-error" routerLinkActive="active">Errors</a>
-      <a *appIsAdmin routerLink="/admin" routerLinkActive="active">Admin</a>
-    </nav>
-    <div class="flex gap-3 align-middle">
-      <a matBadge="{{cartService.itemCount()}}" routerLink="/cart"
-          routerLinkActive="active" matBadgeSize="large"
-          class="custom-badge mt-2 mr-2">
-        <mat-icon>shopping_cart</mat-icon>
-      </a>
-      @if (accountService.currentUser()) {
-      <div class="px-6">
-        <button mat-button [matMenuTriggerFor]="menu">
-          <mat-icon>arrow_drop_down</mat-icon>
-          <span>{{accountService.currentUser()?.email}}</span>
-        </button>
-        <mat-menu #menu="matMenu" class="px-3">
-          <button mat-menu-item routerLink="/cart">
-            <mat-icon>shopping_cart</mat-icon>
-            My cart
-          </button>
-          <button mat-menu-item routerLink="/orders">
-            <mat-icon>history</mat-icon>
-            View Orders
-          </button>
-          <mat-divider></mat-divider>
-          <button mat-menu-item (click)="logout()">
-            <mat-icon>logout</mat-icon>
-            Logout</button>
-        </mat-menu>
-      </div>
-      } @else {
-      <button mat-stroked-button routerLink="/account/login">Login</button>
-      <button mat-stroked-button
-          routerLink="/account/register">Register</button>
-      }
-    </div>
-  </div>
-</header>
+<div class="flex h-screen bg-slate-100 overflow-hidden">
+  @if (accountService.currentUser()) {
+    <!-- Overlay mobile -->
+    @if (sidebarOpen) {
+      <div class="fixed inset-0 bg-black/40 z-20 lg:hidden" (click)="sidebarOpen = false"></div>
+    }
 
-@if (busyService.loading) {
-<mat-progress-bar class="fixed top-20 z-50"
-    mode="indeterminate"></mat-progress-bar>
-}
+    <!-- Sidebar -->
+    <aside
+      class="fixed lg:static h-screen bg-white border-r border-slate-200 shadow-sm transition-all duration-300 ease-in-out z-30 flex flex-col min-h-0 overflow-hidden"
+      [ngClass]="{
+        'w-72 translate-x-0': sidebarOpen,
+        'w-20 lg:translate-x-0 -translate-x-full': !sidebarOpen,
+      }"
+    >
+      <!-- Logo -->
+      <div
+        class="flex items-center gap-3 py-5 border-b border-slate-200"
+        [ngClass]="{ 'px-5': sidebarOpen, 'px-4 justify-center': !sidebarOpen }"
+      >
+        <div
+          class="w-11 h-11 rounded-xl flex items-center justify-center text-white bg-blue-700 shadow-md"
+        >
+          <mat-icon>account_balance</mat-icon>
+        </div>
+
+        @if (sidebarOpen) {
+          <div>
+            <h1 class="text-base font-bold text-slate-900">ระบบบริหารพัสดุ</h1>
+            <p class="text-xs text-slate-500">สำหรับอาจารย์และเจ้าหน้าที่</p>
+          </div>
+        }
+      </div>
+
+      <!-- @if (busyService.loading) {
+        <mat-progress-bar mode="query"></mat-progress-bar>
+      } -->
+
+      <!-- Menu -->
+      <nav class="p-4 space-y-2 flex-1 min-h-0 overflow-y-auto">
+        @if (sidebarOpen) {
+          <p class="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            เมนูหลัก
+          </p>
+        }
+
+        <a
+          routerLink="/"
+          [routerLinkActiveOptions]="{ exact: true }"
+          routerLinkActive="bg-blue-50 text-blue-700 font-semibold"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100 transition-all"
+          [ngClass]="{ 'justify-center': !sidebarOpen }"
+        >
+          <mat-icon>dashboard</mat-icon>
+          @if (sidebarOpen) {
+            <span class="text-sm">หน้าหลัก</span>
+          }
+        </a>
+
+        <!-- กลุ่ม 4 -->
+        @if (sidebarOpen) {
+          <p class="px-4 pt-6 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            จัดซื้อ / จัดจ้าง / เบิกจ่าย
+          </p>
+        }
+
+        <a
+          routerLink="/admin/procurements"
+          routerLinkActive="bg-blue-50 text-blue-700 font-semibold"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100"
+          [ngClass]="{ 'justify-center': !sidebarOpen }"
+        >
+          <mat-icon>request_quote</mat-icon>
+          @if (sidebarOpen) {
+            <span class="text-sm">เอกสารจัดซื้อ/จัดจ้าง</span>
+          }
+        </a>
+        <a
+          routerLink="/admin/projects"
+          routerLinkActive="bg-blue-50 text-blue-700 font-semibold"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100"
+          [ngClass]="{ 'justify-center': !sidebarOpen }"
+        >
+          <mat-icon>assignment</mat-icon>
+          @if (sidebarOpen) {
+            <span class="text-sm">โครงการ</span>
+          }
+        </a>
+        <!-- กลุ่ม คุรุภัณฯ -->
+        @if (sidebarOpen) {
+          <p class="px-4 pt-6 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            ครุภัณฑ์
+          </p>
+        }
+
+        <a
+          routerLink="/admin/assetCategorie"
+          routerLinkActive="bg-blue-50 text-blue-700 font-semibold"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100"
+          [ngClass]="{ 'justify-center': !sidebarOpen }"
+        >
+          <mat-icon>request_quote</mat-icon>
+          @if (sidebarOpen) {
+            <span class="text-sm">ประเภทครุภัณฑ์หลัก</span>
+          }
+        </a>
+
+        <!-- กลุ่ม 3 -->
+        @if (sidebarOpen) {
+          <p class="px-4 pt-6 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            ร้านค้า
+          </p>
+        }
+
+        <a
+          routerLink="/admin/vendors"
+          routerLinkActive="bg-blue-50 text-blue-700 font-semibold"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100"
+          [ngClass]="{ 'justify-center': !sidebarOpen }"
+        >
+          <mat-icon>storefront</mat-icon>
+          @if (sidebarOpen) {
+            <span class="text-sm">บริษัท/ร้านค้า</span>
+          }
+        </a>
+
+        <!-- กลุ่ม 1 -->
+        @if (sidebarOpen) {
+          <p class="px-4 pt-6 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            ผู้ใช้งาน / หน่วยงาน
+          </p>
+        }
+
+        <a
+          routerLink="/admin/departments"
+          routerLinkActive="bg-blue-50 text-blue-700 font-semibold"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100"
+          [ngClass]="{ 'justify-center': !sidebarOpen }"
+        >
+          <mat-icon>apartment</mat-icon>
+          @if (sidebarOpen) {
+            <span class="text-sm">หน่วยงาน/สาขาวิชา</span>
+          }
+        </a>
+
+        <a
+          routerLink="/admin/prefixes"
+          routerLinkActive="bg-blue-50 text-blue-700 font-semibold"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100"
+          [ngClass]="{ 'justify-center': !sidebarOpen }"
+        >
+          <mat-icon>badge</mat-icon>
+          @if (sidebarOpen) {
+            <span class="text-sm">คำนำหน้า</span>
+          }
+        </a>
+
+        <a
+          routerLink="/admin/positions"
+          routerLinkActive="bg-blue-50 text-blue-700 font-semibold"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100"
+          [ngClass]="{ 'justify-center': !sidebarOpen }"
+        >
+          <mat-icon>work</mat-icon>
+          @if (sidebarOpen) {
+            <span class="text-sm">ตำแหน่ง</span>
+          }
+        </a>
+
+        <a
+          routerLink="/admin/staffs"
+          routerLinkActive="bg-blue-50 text-blue-700 font-semibold"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100"
+          [ngClass]="{ 'justify-center': !sidebarOpen }"
+        >
+          <mat-icon>groups</mat-icon>
+          @if (sidebarOpen) {
+            <span class="text-sm">บุคลากร/ผู้เบิก</span>
+          }
+        </a>
+
+        <a
+          routerLink="/admin/users"
+          routerLinkActive="bg-blue-50 text-blue-700 font-semibold"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100"
+          [ngClass]="{ 'justify-center': !sidebarOpen }"
+        >
+          <mat-icon>person</mat-icon>
+          @if (sidebarOpen) {
+            <span class="text-sm">ผู้ใช้งานระบบ</span>
+          }
+        </a>
+
+        <a
+          routerLink="/admin/roles"
+          routerLinkActive="bg-blue-50 text-blue-700 font-semibold"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100"
+          [ngClass]="{ 'justify-center': !sidebarOpen }"
+        >
+          <mat-icon>admin_panel_settings</mat-icon>
+          @if (sidebarOpen) {
+            <span class="text-sm">สิทธิ์ผู้ใช้งาน</span>
+          }
+        </a>
+
+        <!-- กลุ่ม 2 -->
+        @if (sidebarOpen) {
+          <p class="px-4 pt-6 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            งบประมาณ / โครงการ
+          </p>
+        }
+
+        <a
+          routerLink="/admin/fiscalyears"
+          routerLinkActive="bg-blue-50 text-blue-700 font-semibold"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100"
+          [ngClass]="{ 'justify-center': !sidebarOpen }"
+        >
+          <mat-icon>calendar_month</mat-icon>
+          @if (sidebarOpen) {
+            <span class="text-sm">ปีงบประมาณ</span>
+          }
+        </a>
+
+        <a
+          routerLink="/admin/OperationTypes"
+          routerLinkActive="bg-blue-50 text-blue-700 font-semibold"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100"
+          [ngClass]="{ 'justify-center': !sidebarOpen }"
+        >
+          <mat-icon>account_balance_wallet</mat-icon>
+          @if (sidebarOpen) {
+            <span class="text-sm">ประเภทการดำเนินการ </span>
+          }
+        </a>
+        <a
+          routerLink="/admin/expensetypes"
+          routerLinkActive="bg-blue-50 text-blue-700 font-semibold"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100"
+          [ngClass]="{ 'justify-center': !sidebarOpen }"
+        >
+          <mat-icon>account_balance_wallet</mat-icon>
+          @if (sidebarOpen) {
+            <span class="text-sm">ประเภทการเบิกจ่าย </span>
+          }
+        </a>
+        <a
+          routerLink="/admin/fundcategorys"
+          routerLinkActive="bg-blue-50 text-blue-700 font-semibold"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100"
+          [ngClass]="{ 'justify-center': !sidebarOpen }"
+        >
+          <mat-icon>account_balance_wallet</mat-icon>
+          @if (sidebarOpen) {
+            <span class="text-sm">ประเภทหมวดเงิน </span>
+          }
+        </a>
+
+        <a
+          routerLink="/admin/budgetsources"
+          routerLinkActive="bg-blue-50 text-blue-700 font-semibold"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100"
+          [ngClass]="{ 'justify-center': !sidebarOpen }"
+        >
+          <mat-icon>savings</mat-icon>
+          @if (sidebarOpen) {
+            <span class="text-sm">แหล่งงบประมาณ</span>
+          }
+        </a>
+
+        <!-- กลุ่ม 5 -->
+        @if (sidebarOpen) {
+          <p class="px-4 pt-6 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            พัสดุ / ครุภัณฑ์
+          </p>
+        }
+
+        <a
+          routerLink="/admin/inventory-types"
+          routerLinkActive="bg-blue-50 text-blue-700 font-semibold"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100"
+          [ngClass]="{ 'justify-center': !sidebarOpen }"
+        >
+          <mat-icon>category</mat-icon>
+          @if (sidebarOpen) {
+            <span class="text-sm">ประเภทหลัก</span>
+          }
+        </a>
+
+        <a
+          routerLink="/admin/inventory-categories"
+          routerLinkActive="bg-blue-50 text-blue-700 font-semibold"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100"
+          [ngClass]="{ 'justify-center': !sidebarOpen }"
+        >
+          <mat-icon>widgets</mat-icon>
+          @if (sidebarOpen) {
+            <span class="text-sm">หมวดหมู่พัสดุ/ครุภัณฑ์</span>
+          }
+        </a>
+
+        <a
+          routerLink="/admin/materialUnits"
+          routerLinkActive="bg-blue-50 text-blue-700 font-semibold"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100"
+          [ngClass]="{ 'justify-center': !sidebarOpen }"
+        >
+          <mat-icon>straighten</mat-icon>
+          @if (sidebarOpen) {
+            <span class="text-sm">หน่วยนับ</span>
+          }
+        </a>
+
+        <a
+          routerLink="/admin/inventory-items"
+          routerLinkActive="bg-blue-50 text-blue-700 font-semibold"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100"
+          [ngClass]="{ 'justify-center': !sidebarOpen }"
+        >
+          <mat-icon>inventory_2</mat-icon>
+          @if (sidebarOpen) {
+            <span class="text-sm">รายการพัสดุ/ครุภัณฑ์</span>
+          }
+        </a>
+
+        <a
+          routerLink="/admin/assets"
+          routerLinkActive="bg-blue-50 text-blue-700 font-semibold"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100"
+          [ngClass]="{ 'justify-center': !sidebarOpen }"
+        >
+          <mat-icon>devices</mat-icon>
+          @if (sidebarOpen) {
+            <span class="text-sm">ทะเบียนครุภัณฑ์</span>
+          }
+        </a>
+
+        <!-- กลุ่ม 6 -->
+        @if (sidebarOpen) {
+          <p class="px-4 pt-6 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            รับเข้า / เบิกจ่าย / Stock Card
+          </p>
+        }
+
+        <a
+          routerLink="/admin/stock-transactions"
+          routerLinkActive="bg-blue-50 text-blue-700 font-semibold"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100"
+          [ngClass]="{ 'justify-center': !sidebarOpen }"
+        >
+          <mat-icon>swap_vert</mat-icon>
+          @if (sidebarOpen) {
+            <span class="text-sm">รับเข้า/จ่ายออก</span>
+          }
+        </a>
+
+        <a
+          routerLink="/admin/stock-balances"
+          routerLinkActive="bg-blue-50 text-blue-700 font-semibold"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100"
+          [ngClass]="{ 'justify-center': !sidebarOpen }"
+        >
+          <mat-icon>fact_check</mat-icon>
+          @if (sidebarOpen) {
+            <span class="text-sm">ยอดคงเหลือ</span>
+          }
+        </a>
+
+        <!-- กลุ่ม 7 -->
+        @if (sidebarOpen) {
+          <p class="px-4 pt-6 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            เอกสารแนบ
+          </p>
+        }
+
+        <a
+          routerLink="/admin/attachments"
+          routerLinkActive="bg-blue-50 text-blue-700 font-semibold"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100"
+          [ngClass]="{ 'justify-center': !sidebarOpen }"
+        >
+          <mat-icon>attach_file</mat-icon>
+          @if (sidebarOpen) {
+            <span class="text-sm">ไฟล์แนบ</span>
+          }
+        </a>
+      </nav>
+    </aside>
+  }
+
+  <!-- Main -->
+  <div class="flex-1 flex flex-col overflow-hidden min-w-0">
+    <!-- Header -->
+    <header
+      class="bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between sticky top-0 z-10"
+    >
+      <div class="flex items-center gap-4 flex-1">
+        @if (accountService.currentUser()) {
+          <button
+            (click)="toggleSidebar()"
+            class="w-10 h-10 flex items-center justify-center hover:bg-slate-100 rounded-xl text-slate-700"
+          >
+            <mat-icon>menu</mat-icon>
+          </button>
+        }
+
+        <div class="hidden md:flex flex-col">
+          <h2 class="text-sm font-semibold text-slate-800">
+            การพัฒนาระบบบริหารจัดการงานพัสดุและติดตามเอกสาร
+          </h2>
+          <p class="text-xs text-slate-500">มหาวิทยาลัยราชภัฎกาญจนบุรี</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-4">
+        @if (accountService.currentUser()) {
+          <div class="hidden sm:block text-right">
+            <p class="text-sm font-medium text-slate-700">
+              {{ accountService.currentUser()?.email }}
+            </p>
+            <p class="text-xs text-slate-500">อาจารย์ / เจ้าหน้าที่</p>
+          </div>
+
+          <button
+            (click)="toggleDropdown()"
+            class="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold bg-blue-700 shadow-sm"
+          >
+            {{ accountService.currentUser()?.email?.charAt(0) | uppercase }}
+          </button>
+
+          @if (dropdownOpen) {
+            <div
+              class="absolute right-6 top-16 w-52 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50"
+            >
+              <a
+                routerLink="/admin/profile"
+                class="flex items-center gap-3 px-4 py-3 text-slate-700 hover:bg-slate-50 text-sm"
+                (click)="dropdownOpen = false"
+              >
+                <mat-icon class="text-base">person</mat-icon>
+                โปรไฟล์
+              </a>
+
+              <button
+                (click)="logout()"
+                class="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 text-sm"
+              >
+                <mat-icon class="text-base">logout</mat-icon>
+                ออกจากระบบ
+              </button>
+            </div>
+          }
+        } @else {
+          <button mat-flat-button class="!bg-blue-700 !text-white" routerLink="/account/login">
+            เข้าสู่ระบบ
+          </button>
+        }
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="flex-1 overflow-auto bg-slate-100 p-0"><router-outlet> </router-outlet></main>
+  </div>
+</div>

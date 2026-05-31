@@ -19,7 +19,6 @@ public static class ClaimsPrincipleExtensions
     public static async Task<AppUser> GetUserByEmailWithAddress(this UserManager<AppUser> userManager, ClaimsPrincipal user)
     {
         var userToReturn = await userManager.Users
-            .Include(x => x.Address)
             .FirstOrDefaultAsync(x => x.Email == user.GetEmail());
 
         if (userToReturn == null) throw new AuthenticationException("User not found");

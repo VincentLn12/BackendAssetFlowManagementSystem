@@ -55,7 +55,6 @@ public class AccountController(SignInManager<AppUser> signInManager) : BaseApiCo
             user.FirstName,
             user.LastName,
             user.Email,
-            Address = user.Address?.ToDto(),
             Roles = User.FindFirstValue(ClaimTypes.Role)
         });
     }
@@ -69,25 +68,4 @@ public class AccountController(SignInManager<AppUser> signInManager) : BaseApiCo
         });
     }
 
-    [Authorize]
-    [HttpPost("address")]
-    public async Task<ActionResult<Address>> CreateOrUpdateAddress(AddressDto addressDto)
-    {
-        var user = await signInManager.UserManager.GetUserByEmailWithAddress(User);
-
-        if (user.Address == null)
-        {
-            user.Address = addressDto.ToEntity();
-        }
-        else
-        {
-            user.Address.UpdateFromDto(addressDto);
-        }
-
-        var result = await signInManager.UserManager.UpdateAsync(user);
-
-        if (!result.Succeeded) return BadRequest("Problem updating user address");
-
-        return Ok(user.Address.ToDto());
-    }
 }

@@ -1,23 +1,23 @@
+global using System.ComponentModel.DataAnnotations;
 global using Core.Entities;
 global using Infrastructure;
 global using Infrastructure.Data;
+global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.EntityFrameworkCore;
-using API.Middleware;
-using API.SignalR;
-using Core.Interfaces;
-using Infrastructure.Services;
+global using APi.DTOs;
+global using API.RequestHelpers;
+global using AutoMapper;
+global using Core.Interfaces;
+global using API.Helpers;
+global using API.Middleware;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddSwaggerGen();
-
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
 builder.Services.AddDbContext<StoreContext>(opt =>
 {
@@ -32,12 +32,13 @@ builder.Services.AddIdentityApiEndpoints<AppUser>()
     .AddEntityFrameworkStores<StoreContext>();
 
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
-builder.Services.AddScoped<ICartService, CartService>();
-builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddSignalR();
 
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.AddProfile<MappingProfiles>();
+});
 
 var app = builder.Build();
 
@@ -68,8 +69,9 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 app.MapControllers();
+app.UseStaticFiles();
+
 app.MapGroup("api").MapIdentityApi<AppUser>();
-app.MapHub<NotificationHub>("/hub/notifications");
 app.MapFallbackToController("Index", "Fallback");
 
 try

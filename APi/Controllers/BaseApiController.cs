@@ -19,7 +19,7 @@ public class BaseApiController : ControllerBase
 
     protected async Task<ActionResult> CreatePagedResult<T, TDto>(IGenericRepository<T> repo,
         ISpecification<T> spec, int pageIndex, int pageSize, Func<T, TDto> toDto)
-            where T : BaseEntity, IDtoConvertible
+            where T : BaseEntity
             where TDto : class
     {
         var items = await repo.ListAsync(spec);

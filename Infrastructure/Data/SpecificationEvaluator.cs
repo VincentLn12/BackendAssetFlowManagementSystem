@@ -11,7 +11,7 @@ public class SpecificationEvaluator<T> where T : BaseEntity
     {
         if (spec.Criteria != null)
         {
-            query = query.Where(spec.Criteria); // x => x.Brand == "React"
+            query = query.Where(spec.Criteria); 
         }
 
         if (spec.OrderBy != null)

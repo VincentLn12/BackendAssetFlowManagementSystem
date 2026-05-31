@@ -1,6 +1,4 @@
 ﻿using Core.Entities;
-using Core.Entities.OrderAggregate;
-using Infrastructure.Config;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,17 +6,44 @@ namespace Infrastructure;
 
 public class StoreContext(DbContextOptions options) : IdentityDbContext<AppUser>(options)
 {
-    public DbSet<Product> Products { get; set; }
-    public DbSet<CartStorage> CartStorages { get; set; }
-    public DbSet<Address> Addresses { get; set; }
-    public DbSet<DeliveryMethod> DeliveryMethods { get; set; }
-    public DbSet<Order> Orders { get; set; }
-    public DbSet<OrderItem> OrderItems { get; set; }
+    //สาขา
+    public DbSet<Departments> departments { get; set; }
+    //คำนำหน้า
+    public DbSet<Prefixes> prefixes { get; set; }
+    //ตำแหน่ง
+    public DbSet<Positions> positions { get; set; }
+    //เจ้าหน้าที่
+    public DbSet<Staffs> staffs { get; set; }
+    //ปีงบประมาณ
+    public DbSet<Fiscal_years> fiscal_years { get; set; }
+    //หมวดหมู่เงิน
+    public DbSet<Fund_categories> fund_categories { get; set; }
+    //งบประมาณ
+    public DbSet<Budget_sources> budget_sources { get; set; }
+    //บริษัท
+    public DbSet<Vendors> vendors { get; set; }
+    //ประเภทดำเนินการ 
+    public DbSet<Operation_types> operation_types { get; set; }
+    //ประเภทค่าใช้จ่าย 
+    public DbSet<Expense_types> expense_types { get; set; }
+    //บันทึกการจัดซื้อจัดจ้าง
+    public DbSet<Procurement_records> procurement_records { get; set; }
+    //โครงการ
+    public DbSet<Projects> projects { get; set; }
+    //รายละเอียดการจัดซื้อจัดจ้าง
+    public DbSet<HireDetail> hireDetails { get; set; }
+    //หมวดหมู่ทรัพย์สิน
+    public DbSet<AssetCategory> assetCategories { get; set; }
+    //หน่วยนับ
+    public DbSet<MaterialUnit> units { get; set; }
+    //ทรัพย์สิน
+    public DbSet<AssetItem> assetItems { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ProductConfiguration).Assembly);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(StoreContext).Assembly);
     }
 }

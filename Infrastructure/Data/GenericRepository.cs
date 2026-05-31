@@ -32,10 +32,10 @@ public class GenericRepository<T>(StoreContext context) : IGenericRepository<T> 
         context.Set<T>().Remove(entity);
     }
 
-    public bool Exists(int id)
-    {
-        return context.Set<T>().Any(x => x.Id == id);
-    }
+    //public bool Exists(int id)
+    //{
+    //    return context.Set<T>().Any(x => x.Id == id);
+    //}
 
     public async Task<T?> GetEntityWithSpec(ISpecification<T> spec)
     {
