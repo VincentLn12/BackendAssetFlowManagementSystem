@@ -15,5 +15,9 @@
   (add)="goToCreate()"
   (edit)="goToEdit($event)"
   (delete)="deleteProject($event)"
+  [fileBaseUrl]="baseFileUrl"
+  (action)="gotoPathTo($event)"
+  [Namepath]="'เอกสาร'"
+  [showPathTo]="true"
 >
 </app-data-table>

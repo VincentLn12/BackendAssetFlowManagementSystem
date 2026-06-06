@@ -9,7 +9,7 @@ namespace APi.DTOs
         public DateTime inspection_date { get; set; } 
         public decimal total_amount { get; set; }
         public string amount_text { get; set; } = string.Empty; 
-        public DateTime approval_date { get; set; } 
+        public DateTime? approval_date { get; set; } 
         public string? reference_no { get; set; } = string.Empty; 
         public string status { get; set; } = string.Empty; 
         public string? remark { get; set; } = string.Empty; 

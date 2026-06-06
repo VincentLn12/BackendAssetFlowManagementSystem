@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/shared/components/empty-state/empty-state.component.scss", "src/app/shared/components/empty-state/empty-state.component.scss"],
-  "sourcesContent": [".icon-display {\r\n    transform: scale(3);\r\n}", ".icon-display {\n  transform: scale(3);\n}\n/*# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyJmaWxlOi8vL0M6L1VzZXJzL0hQQTIxL0Rlc2t0b3AvJUUwJUI5JTgyJUUwJUI4JTlCJUUwJUI4JUEzJUUwJUI5JTgwJUUwJUI4JTg4JUUwJUI4JTg0JUUwJUI5JTgzJUUwJUI4JUFCJUUwJUI4JThEJUUwJUI5JTg4LyVFMCVCOCU4NyVFMCVCOCVCMiVFMCVCOCU5OSVFMCVCOCU5RSVFMCVCOCVCMSVFMCVCOCVBQSVFMCVCOCU5NCVFMCVCOCVCOC9Bc3NldEZsb3dNYW5hZ2VtZW50U3lzdGVtL2NsaWVudC9zcmMvYXBwL3NoYXJlZC9jb21wb25lbnRzL2VtcHR5LXN0YXRlL2VtcHR5LXN0YXRlLmNvbXBvbmVudC5zY3NzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQUFBO0VBQ0kiLCJzb3VyY2VzQ29udGVudCI6WyIuaWNvbi1kaXNwbGF5IHtcclxuICAgIHRyYW5zZm9ybTogc2NhbGUoMyk7XHJcbn0iXX0= */"],
-  "mappings": ";AAAA,CAAA;AACI,aAAA,MAAA;ACCJ;",
-  "names": []
-}

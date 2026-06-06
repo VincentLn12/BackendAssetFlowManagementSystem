@@ -15,6 +15,8 @@
 
         public int? staff_id { get; set; }
         public string staff_name { get; set; } = string.Empty;
+        public string filePath { get; set; } = string.Empty;
+
         public bool is_active { get; set; } = true;
 
         public DateTime created_at { get; set; } = DateTime.UtcNow;
@@ -33,5 +35,7 @@
         public bool is_active { get; set; } = true;
         public DateTime created_at { get; set; } = DateTime.UtcNow;
         public DateTime? updated_at { get; set; }
+        public string filePath { get; set; } = string.Empty;
+
     }
 }

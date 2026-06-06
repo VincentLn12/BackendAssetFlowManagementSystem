@@ -26,6 +26,10 @@ export class AssetItemsComponent implements OnInit {
   assetItems = signal<assetItemsTypes[]>([]);
   Params = new Params();
   totalCount = signal<number>(0);
+  
+  headerColor = 'bg-slate-700';
+  headerBorderColor = 'border-slate-700';
+  butttonColor = 'bg-slate-700 hover:bg-slate-800 ';
 
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
@@ -114,6 +118,29 @@ export class AssetItemsComponent implements OnInit {
     });
   }
 
+  onTableAction(event: { type: string; item: assetItemsTypes }) {
+    const mat = event.item;
+
+    const stateData = {
+      assetItem: mat,
+      procurementrecord: history.state?.procurementrecord,
+      procurement_record_id: this.procurement_record_id(),
+    };
+
+    if (event.type === 'pathTo') {
+      this.router.navigate(['/admin/assetsubItems', mat.asset_id], {
+        state: stateData,
+      });
+      return;
+    }
+
+    if (event.type === 'detail') {
+      this.router.navigate(['/admin/assetItems/details', mat.asset_id], {
+        state: stateData,
+      });
+    }
+  }
+
   sortOptions = [
     { label: 'ชื่อ ก-ฮ', value: 'nameAsc' },
     { label: 'ชื่อ ฮ-ก', value: 'nameDesc' },
@@ -126,6 +153,13 @@ export class AssetItemsComponent implements OnInit {
       { label: 'รหัส', key: 'asset_code_prefix' },
       { label: 'ชื่อครุภัณฑ์', key: 'asset_name' },
       { label: 'วันที่รับ', key: 'receive_date', pipe: 'thaiDate' },
-      { label: 'ผู้เบิก', key: 'staff_name' },
     ];
+
+  cancel() {
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      this.router.navigate(['/admin/procurements']);
+    }
+  }
 }

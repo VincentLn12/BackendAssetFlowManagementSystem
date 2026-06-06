@@ -15,13 +15,13 @@ public class AssetItemSpecification : BaseSpecification<AssetItem>
             )
         )
     {
-        //AddInclude(x => x.AssetCategory);
-        //AddInclude(x => x.Unit);
         AddInclude(x => x.FundCategory);
         AddInclude(x => x.Department);
-        AddInclude(x => x.Staff);
-        AddInclude(x => x.Staff.Prefixes);
-        AddInclude(x => x.Vendor);
+        //AddInclude(x => x.Staff);
+        //AddInclude(x => x.Staff.Prefixes);
+        //AddInclude(x => x.Vendor);
+       
+
 
         switch (specParams.Sort)
         {

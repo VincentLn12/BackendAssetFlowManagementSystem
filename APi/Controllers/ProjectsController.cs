@@ -4,7 +4,7 @@ using Core.Interfaces.Specifications.Projects;
 
 namespace API.Controllers;
 
-public class ProjectsController(IUnitOfWork unit, IMapper mapper) : BaseApiController
+public class ProjectsController(IUnitOfWork unit, IMapper mapper, FileService fileService) : BaseApiController
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<Projects>>> GetProjects([FromQuery] ProjectsSpecParams projectsParams)
@@ -97,6 +97,24 @@ public class ProjectsController(IUnitOfWork unit, IMapper mapper) : BaseApiContr
         }
 
         return BadRequest("Problem deleting fund category");
+    }
+
+
+    [HttpPost("upload")]
+    public async Task<IActionResult> UploadFile(IFormFile file)
+    {
+        try
+        {
+            var filePath = await fileService.UploadFileAsync(file, "uploads/projects");
+            return Ok(new
+            {
+                filePath
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
 }

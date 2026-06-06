@@ -3,7 +3,7 @@ using Core.Interfaces.Specifications.Procurement_records;
 
 namespace API.Controllers;
 
-public class Procurement_recordsController(IUnitOfWork unit, IMapper mapper) : BaseApiController
+public class Procurement_recordsController(IUnitOfWork unit, IMapper mapper, FileService fileService) : BaseApiController
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<Procurement_records>>> GetProcurementRecords([FromQuery] Procurement_recordsSpecParams procurementRecordsParams)
@@ -41,8 +41,6 @@ public class Procurement_recordsController(IUnitOfWork unit, IMapper mapper) : B
     [HttpPost]
     public async Task<ActionResult<Procurement_records>> CreateProcurementRecord(ProcurementRecordCreateDto procurementRecord)
     {
-
-
         var procurement = mapper.Map<Procurement_records>(procurementRecord);
 
         procurement.is_active = true;
@@ -50,10 +48,8 @@ public class Procurement_recordsController(IUnitOfWork unit, IMapper mapper) : B
                         ThaiBahtTextConverter.ToThaiBahtText(procurement.total_amount);
 
         procurement.approval_date = DateTime.UtcNow;
-
         procurement.created_at = DateTime.UtcNow;
        
-
         unit.Repository<Procurement_records>().Add(procurement);
 
         if (await unit.Complete())
@@ -64,7 +60,6 @@ public class Procurement_recordsController(IUnitOfWork unit, IMapper mapper) : B
                 procurement
             );
         }
-
         return BadRequest("Problem creating procurement record");
     }
 
@@ -81,8 +76,6 @@ public class Procurement_recordsController(IUnitOfWork unit, IMapper mapper) : B
             return NotFound("ProcurementRecord not found");
 
         mapper.Map(dto, existingProcurementRecord);
-
-
 
         existingProcurementRecord.updated_at = DateTime.Now;
 
@@ -113,40 +106,118 @@ public class Procurement_recordsController(IUnitOfWork unit, IMapper mapper) : B
         return BadRequest("Problem deleting procurement record");
     }
 
+    [HttpPost("create-with-assets")]
+    public async Task<ActionResult> CreateProcurementWithAssets(ProcurementAssetFullCreateDto dto)
+    {
+        var procurement = mapper.Map<Procurement_records>(dto.procurement_record);
+
+        procurement.is_active = true;
+        procurement.amount_text = ThaiBahtTextConverter.ToThaiBahtText(procurement.total_amount);
+        procurement.created_at = DateTime.UtcNow;
+        procurement.approval_date = DateTime.UtcNow;
+
+        unit.Repository<Procurement_records>().Add(procurement);
+
+        if (!await unit.Complete())
+            return BadRequest("Problem creating procurement record");
+
+        var assetItem = mapper.Map<AssetItem>(dto.asset_item);
+
+        assetItem.procurement_record_id = procurement.procurement_record_id;
+        assetItem.is_active = true;
+        assetItem.created_at = DateTime.UtcNow;
+
+        unit.Repository<AssetItem>().Add(assetItem);
+
+        if (!await unit.Complete())
+            return BadRequest("Problem creating asset item");
+
+        foreach (var subDto in dto.asset_sub_items)
+        {
+            var subItem = mapper.Map<AssetSubItem>(subDto);
+
+            subItem.asset_id = assetItem.asset_id;
+            subItem.is_active = true;
+            subItem.created_at = DateTime.UtcNow;
+
+            unit.Repository<AssetSubItem>().Add(subItem);
+        }
+
+        if (await unit.Complete())
+        {
+            return Ok(new
+            {
+                procurement_record_id = procurement.procurement_record_id,
+                asset_id = assetItem.asset_id,
+                message = "Create procurement with asset successfully"
+            });
+        }
+
+        return BadRequest("Problem creating asset sub items");
+    }
+    [HttpPost("create-with-hire")]
+    public async Task<ActionResult> CreateProcurementWithHire(
+    [FromBody] ProcurementHireFullCreateDto dto
+)
+    {
+        if (dto.hire_details == null || dto.hire_details.Count == 0)
+            return BadRequest("กรุณาเพิ่มรายการจัดจ้างอย่างน้อย 1 รายการ");
+
+        var procurement = mapper.Map<Procurement_records>(dto.procurement_record);
+
+        procurement.is_active = true;
+        procurement.amount_text = ThaiBahtTextConverter.ToThaiBahtText(procurement.total_amount);
+        procurement.created_at = DateTime.UtcNow;
+
+        if (procurement.status == "ดำเนินการแล้ว")
+            procurement.approval_date = DateTime.UtcNow;
+        else
+            procurement.approval_date = null;
+
+        unit.Repository<Procurement_records>().Add(procurement);
+
+        if (!await unit.Complete())
+            return BadRequest("Problem creating procurement record");
+
+        foreach (var hireDto in dto.hire_details)
+        {
+            var hireDetail = mapper.Map<HireDetail>(hireDto);
+
+            hireDetail.procurement_record_id = procurement.procurement_record_id;
+            hireDetail.total_amount = hireDetail.quantity * hireDetail.unit_price;
+            hireDetail.total_text = ThaiBahtTextConverter.ToThaiBahtText(hireDetail.total_amount);
+            hireDetail.is_active = true;
+
+            unit.Repository<HireDetail>().Add(hireDetail);
+        }
+
+        if (await unit.Complete())
+        {
+            return Ok(new
+            {
+                procurement_record_id = procurement.procurement_record_id,
+                message = "Create procurement with hire details successfully"
+            });
+        }
+
+        return BadRequest("Problem creating hire details");
+    }
+
     [HttpPost("upload")]
     public async Task<IActionResult> UploadFile(IFormFile file)
     {
-        if (file == null || file.Length == 0)
-            return BadRequest("No file uploaded");
-
-        var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".doc", ".docx" };
-        var extension = Path.GetExtension(file.FileName).ToLower();
-
-        if (!allowedExtensions.Contains(extension))
-            return BadRequest("File type not allowed");
-
-        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-
-        if (!Directory.Exists(uploadsFolder))
+        try
         {
-            Directory.CreateDirectory(uploadsFolder);
+            var filePath = await fileService.UploadFileAsync(file, "uploads");
+            return Ok(new
+            {
+                filePath
+            });
         }
-
-        var fileName = $"{Guid.NewGuid()}{extension}";
-        var filePath = Path.Combine(uploadsFolder, fileName);
-
-        using (var stream = new FileStream(filePath, FileMode.Create))
+        catch (Exception ex)
         {
-            await file.CopyToAsync(stream);
+            return BadRequest(ex.Message);
         }
-
-        var relativePath = $"/uploads/{fileName}";
-
-        return Ok(new
-        {
-            fileName,
-            filePath = relativePath
-        });
     }
 
 

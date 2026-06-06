@@ -1,4 +1,4 @@
-global using System.ComponentModel.DataAnnotations;
+﻿global using System.ComponentModel.DataAnnotations;
 global using Core.Entities;
 global using Infrastructure;
 global using Infrastructure.Data;
@@ -18,6 +18,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<FileService>();
 
 builder.Services.AddDbContext<StoreContext>(opt =>
 {
@@ -61,15 +62,16 @@ app.UseCors(x => x
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseDefaultFiles();
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(
-        Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "myshop")),
-    RequestPath = ""
-});
+//app.UseStaticFiles(new StaticFileOptions
+//{
+//    FileProvider = new PhysicalFileProvider(
+//        Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "myshop")),
+//    RequestPath = ""
+//});
 
 app.MapControllers();
 app.UseStaticFiles();
+
 
 app.MapGroup("api").MapIdentityApi<AppUser>();
 app.MapFallbackToController("Index", "Fallback");

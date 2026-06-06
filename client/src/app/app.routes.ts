@@ -288,7 +288,7 @@ export const routes: Routes = [
           {
             path: 'procurements',
             loadComponent: () =>
-              import('./features/procurementrecord/procurementrecord.component').then(
+              import('./features/procurementrecord/procurementrecord.components').then(
                 (m) => m.ProcurementrecordComponent,
               ),
           },
@@ -300,6 +300,7 @@ export const routes: Routes = [
                 (m) => m.ProcurementsAddUpdateComponent,
               ),
           },
+
           {
             path: 'procurements/update/:id',
             loadComponent: () =>
@@ -314,6 +315,7 @@ export const routes: Routes = [
                 (m) => m.ProcurementrecordDetailsComponent,
               ),
           },
+
           // รายละเอียดการจ้าง
           {
             path: 'hireDetails/:id',
@@ -369,7 +371,6 @@ export const routes: Routes = [
               ),
           },
           // รายการครุภัณฑ์
-
           {
             path: 'assetItems/create',
             loadComponent: () =>
@@ -385,10 +386,201 @@ export const routes: Routes = [
               ),
           },
           {
+            path: 'assetItems/details/:id',
+            loadComponent: () =>
+              import('./features/assetItems/asset-itemdetail/asset-itemdetail.component').then(
+                (m) => m.AssetItemdetailComponent,
+              ),
+          },
+          {
             path: 'assetItems/:id',
             loadComponent: () =>
               import('./features/assetItems/assetItems.component').then(
                 (m) => m.AssetItemsComponent,
+              ),
+          },
+          // รายการครุภัณฑ์ย่อย
+          {
+            path: 'assetsubItems/create',
+            loadComponent: () =>
+              import('./features/assetsubItems/assetsubItemsaddupdate/addupdate.component').then(
+                (m) => m.AssetSubItemsAddUpdateComponent,
+              ),
+          },
+          {
+            path: 'assetsubItems/update/:id',
+            loadComponent: () =>
+              import('./features/assetsubItems/assetsubItemsaddupdate/addupdate.component').then(
+                (m) => m.AssetSubItemsAddUpdateComponent,
+              ),
+          },
+          {
+            path: 'assetsubItems/:id',
+            loadComponent: () =>
+              import('./features/assetsubItems/assetsubItem.component').then(
+                (m) => m.AssetSubItemsComponent,
+              ),
+          },
+          // ประวัติการซ่อมบำรุงรักษาทรัพย์สิน
+          {
+            path: 'assetRepairs/create',
+            loadComponent: () =>
+              import('./features/assetRepairs/assetRepairsaddupdate/addupdate.component').then(
+                (m) => m.AssetRepairsAddUpdateComponent,
+              ),
+          },
+          {
+            path: 'assetRepairs/update/:id',
+            loadComponent: () =>
+              import('./features/assetRepairs/assetRepairsaddupdate/addupdate.component').then(
+                (m) => m.AssetRepairsAddUpdateComponent,
+              ),
+          },
+          {
+            path: 'assetRepairs/:id',
+            loadComponent: () =>
+              import('./features/assetRepairs/assetRepairs.component').then(
+                (m) => m.AssetRepairsComponent,
+              ),
+          },
+          {
+            path: 'assetRepairs/detail/:id',
+            loadComponent: () =>
+              import('./features/assetRepairs/details/assetRepairsDetails.component').then(
+                (m) => m.AssetRepairsDetailsComponent,
+              ),
+          },
+          // วิธีการได้มา
+          {
+            path: 'acquisitionMethod',
+            loadComponent: () =>
+              import('./features/acquisitionMethod/acquisitionMethod.component').then(
+                (m) => m.AcquisitionMethodComponent,
+              ),
+          },
+
+          {
+            path: 'acquisitionMethod/create',
+            loadComponent: () =>
+              import('./features/acquisitionMethod/acquisitionMethodaddupdate/addupdate.component').then(
+                (m) => m.AcquisitionMethodAddUpdateComponent,
+              ),
+          },
+          {
+            path: 'acquisitionMethod/update/:id',
+            loadComponent: () =>
+              import('./features/acquisitionMethod/acquisitionMethodaddupdate/addupdate.component').then(
+                (m) => m.AcquisitionMethodAddUpdateComponent,
+              ),
+          },
+          // การเบิกครุภัณฑ์
+          {
+            path: 'AssetWithdrawal/create',
+            loadComponent: () =>
+              import('./features/assetWithdrawal/assetWithdrawaladdupdate/addupdate.component').then(
+                (m) => m.AssetWithdrawalAddUpdateComponent,
+              ),
+          },
+          {
+            path: 'AssetWithdrawal/update/:id',
+            loadComponent: () =>
+              import('./features/assetWithdrawal/assetWithdrawaladdupdate/addupdate.component').then(
+                (m) => m.AssetWithdrawalAddUpdateComponent,
+              ),
+          },
+          {
+            path: 'AssetWithdrawal/:id',
+            loadComponent: () =>
+              import('./features/assetWithdrawal/assetWithdrawal.component').then(
+                (m) => m.AssetWithdrawalComponent,
+              ),
+          },
+          //โปรเจค
+          {
+            path: 'project/procurementrecord',
+            loadComponent: () =>
+              import('./features/procurementrecord/projectid/projectid.component').then(
+                (m) => m.ProjectidComponent,
+              ),
+          },
+          {
+            path: 'project/procurementrecord/create',
+            loadComponent: () =>
+              import('./features/procurementrecord/projectprocurementrecordaddupdate/addupdate.component').then(
+                (m) => m.ProcurementsAddUpdateComponents,
+              ),
+          },
+          {
+            path: 'project/procurementrecord/update/:id',
+            loadComponent: () =>
+              import('./features/procurementrecord/projectprocurementrecordaddupdate/addupdate.component').then(
+                (m) => m.ProcurementsAddUpdateComponents,
+              ),
+          },
+          // ประเภทการใช้งานครุภัณฑ์
+          {
+            path: 'assetUsageType',
+            loadComponent: () =>
+              import('./features/assetUsageType/assetUsageType.component').then(
+                (m) => m.AssetUsageTypeComponent,
+              ),
+          },
+          {
+            path: 'assetUsageType/create',
+            loadComponent: () =>
+              import('./features/assetUsageType/assetUsageTypeaddupdate/addupdate.component').then(
+                (m) => m.AssetUsageTypeAddUpdateComponent,
+              ),
+          },
+          {
+            path: 'assetUsageType/update/:id',
+            loadComponent: () =>
+              import('./features/assetUsageType/assetUsageTypeaddupdate/addupdate.component').then(
+                (m) => m.AssetUsageTypeAddUpdateComponent,
+              ),
+          },
+          // ประเภทการใช้งานครุภัณฑ์
+          {
+            path: 'AssetSubItemHistory/create',
+            loadComponent: () =>
+              import('./features/assetSubItemHistory/assetSubItemHistoryaddupdate/addupdate.component').then(
+                (m) => m.AssetSubItemHistoryAddUpdateComponent,
+              ),
+          },
+          {
+            path: 'AssetSubItemHistory/update/:id',
+            loadComponent: () =>
+              import('./features/assetSubItemHistory/assetSubItemHistoryaddupdate/addupdate.component').then(
+                (m) => m.AssetSubItemHistoryAddUpdateComponent,
+              ),
+          },
+          {
+            path: 'AssetSubItemHistory/:id',
+            loadComponent: () =>
+              import('./features/assetSubItemHistory/assetSubItemHistory.component').then(
+                (m) => m.AssetSubItemHistoryComponent,
+              ),
+          },
+          // รายการวัสดุ
+          {
+            path: 'MaterialItems/create',
+            loadComponent: () =>
+              import('./features/MaterialItems/materialItemsaddupdate/addupdate.component').then(
+                (m) => m.MaterialItemsAddUpdateComponent,
+              ),
+          },
+          {
+            path: 'MaterialItems/update/:id',
+            loadComponent: () =>
+              import('./features/MaterialItems/materialItemsaddupdate/addupdate.component').then(
+                (m) => m.MaterialItemsAddUpdateComponent,
+              ),
+          },
+          {
+            path: 'MaterialItems',
+            loadComponent: () =>
+              import('./features/MaterialItems/materialItems.component').then(
+                (m) => m.MaterialItemsComponent,
               ),
           },
           {

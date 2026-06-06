@@ -1,4 +1,5 @@
-﻿using Core.Entities;
+﻿using API.Entities;
+using Core.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,8 +37,23 @@ public class StoreContext(DbContextOptions options) : IdentityDbContext<AppUser>
     public DbSet<AssetCategory> assetCategories { get; set; }
     //หน่วยนับ
     public DbSet<MaterialUnit> units { get; set; }
-    //ทรัพย์สิน
+    //คุรุภัณฑ์
     public DbSet<AssetItem> assetItems { get; set; }
+    //คุรุภัณฑ์ย่อย
+    public DbSet<AssetSubItem> assetSubItems { get; set; }
+    //การซ่อมแซมคุรุภัณฑ์
+    public DbSet<AssetRepair> assetRepairs { get; set; }
+    //วิธีการได้มา
+    public DbSet<AcquisitionMethod> acquisitionMethods { get; set; }
+    //ประวัติการได้มา
+    public DbSet<AssetWithdrawal> assetWithdrawals { get; set; }
+    //ประเภทการใช้งาน
+    public DbSet<AssetUsageType> assetUsageTypes { get; set; }
+    //ประวัติการใช้งาน
+    public DbSet<AssetSubItemHistory> assetSubItemHistories { get; set; }
+    //รายการสินค้า
+    public DbSet<MaterialItem> materialItems { get; set; }
+
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

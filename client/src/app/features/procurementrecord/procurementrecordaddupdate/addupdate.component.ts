@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -37,6 +37,7 @@ export class ProcurementsAddUpdateComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private snackbar = inject(SnackbarService);
+  private location = inject(Location);
 
   private procurementrecordService = inject(ProcurementrecordService);
   private fiscalyearsService = inject(FiscalyearsService);
@@ -75,7 +76,7 @@ export class ProcurementsAddUpdateComponent implements OnInit {
     inspection_date: [new Date().toISOString().split('T')[0]],
     total_amount: [0, Validators.required],
     amount_text: [''],
-    approval_date: [new Date().toISOString().split('T')[0]],
+    approval_date: [new Date().toISOString().split('T')[0] as string | null],
     reference_no: [''],
     status: ['ร่าง'],
     remark: [''],
@@ -318,6 +319,11 @@ export class ProcurementsAddUpdateComponent implements OnInit {
   }
 
   cancel() {
+    if (window.history.length > 1) {
+      this.location.back();
+    } else {
+      this.router.navigate(['/admin/projects']);
+    }
     this.router.navigate(['/admin/procurements']);
   }
 
@@ -326,9 +332,22 @@ export class ProcurementsAddUpdateComponent implements OnInit {
     value: ProcurementRecordStatus;
   }[] = [
     { label: 'ร่าง', value: 'ร่าง' },
-    { label: 'รอดำเนินการ', value: 'รอดำเนินการ' },
-    { label: 'ดำเนินการแล้ว', value: 'ดำเนินการแล้ว' },
+    { label: 'รออนุมัติ', value: 'รออนุมัติ' },
+    { label: 'อนุมัติแล้ว', value: 'อนุมัติแล้ว' },
+    { label: 'รอเบิกจ่าย', value: 'รอเบิกจ่าย' },
+    { label: 'เบิกจ่ายแล้ว', value: 'เบิกจ่ายแล้ว' },
+    { label: 'ขึ้นทะเบียนแล้ว', value: 'ขึ้นทะเบียนแล้ว' },
+    { label: 'เสร็จสิ้น', value: 'เสร็จสิ้น' },
+    { label: 'ยกเลิก', value: 'ยกเลิก' },
   ];
 }
 
-export type ProcurementRecordStatus = 'ร่าง' | 'รอดำเนินการ' | 'ดำเนินการแล้ว';
+export type ProcurementRecordStatus =
+  | 'ร่าง'
+  | 'รออนุมัติ'
+  | 'อนุมัติแล้ว'
+  | 'รอเบิกจ่าย'
+  | 'เบิกจ่ายแล้ว'
+  | 'ขึ้นทะเบียนแล้ว'
+  | 'เสร็จสิ้น'
+  | 'ยกเลิก';

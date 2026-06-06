@@ -15,16 +15,11 @@ namespace Core.Entities
         [MaxLength(500)]
         public string project_name { get; set; } = string.Empty;
 
-
         [Column(TypeName = "decimal(18,2)")]
         public decimal project_budget_amount { get; set; }
 
+        public string filePath { get; set; } = string.Empty;
 
-        public bool is_active { get; set; } = true;
-
-        public DateTime created_at { get; set; } = DateTime.UtcNow;
-
-        public DateTime? updated_at { get; set; }
 
         public int fiscal_year_id { get; set; }
         [ForeignKey ("fiscal_year_id")]

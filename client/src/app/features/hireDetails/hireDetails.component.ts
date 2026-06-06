@@ -1,14 +1,14 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Params } from '../../shared/models/allType';
 import { AlertService } from '../../../shared.service';
 import { hireDetailCreateType, hireDetailType } from './interface/hireDetailType';
 import { HireDetailsService } from './service/hireDetail.service';
 import { toThaiBahtText } from '../../shared/thai-baht-text';
-import { MaterialUnitsService } from '../materialUnits/service/materialUnits.service';
 import { forkJoin } from 'rxjs';
+import { MaterialUnitsService } from '../materialUnits/service/materialUnits.service';
 
 @Component({
   selector: 'app-departments',
@@ -18,6 +18,9 @@ import { forkJoin } from 'rxjs';
 })
 export class HireDetailsComponent implements OnInit {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private location = inject(Location);
+
   private hireDetailsService = inject(HireDetailsService);
   private MaterialUnitsService = inject(MaterialUnitsService);
   private alertService = inject(AlertService);
@@ -31,6 +34,8 @@ export class HireDetailsComponent implements OnInit {
 
   isFormOpen = signal(false);
   isEditMode = signal(false);
+
+  headercolor = 'bg-green-100 text-green-800';
 
   form = signal<hireDetailCreateType>({
     hire_detail_id: 0,
@@ -50,7 +55,19 @@ export class HireDetailsComponent implements OnInit {
     this.loadDropdowns();
     const idParam = this.route.snapshot.paramMap.get('id');
     const id = idParam ? Number(idParam) : null;
+    const procurementrecord = history.state?.procurementrecord;
 
+    // ถ้าไม่มี state แปลว่าพิมพ์ URL เอง
+    if (!procurementrecord) {
+      this.router.navigate(['/admin/procurements']);
+      return;
+    }
+
+    // hireDetails เข้าได้เฉพาะ จัดจ้าง
+    if (procurementrecord.expense_type_name !== 'จัดจ้าง') {
+      this.router.navigate(['/admin/procurements']);
+      return;
+    }
     if (id && Number.isFinite(id)) {
       this.procurement_record_id.set(id);
       this.LoadgetHiredetail(id);
@@ -173,6 +190,16 @@ export class HireDetailsComponent implements OnInit {
         this.confirmDelete(id);
       }
     });
+  }
+
+  cancel() {
+    const id = history.state?.procurement_record_id;
+
+    if (window.history.length > 1) {
+      this.location.back();
+    } else {
+      this.router.navigate(['/admin/projects']);
+    }
   }
 
   confirmDelete(id: number) {
