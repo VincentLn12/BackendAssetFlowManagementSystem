@@ -38,7 +38,7 @@
           </div>
         } @else {
           <form [formGroup]="form" (ngSubmit)="submit()">
-            <div class="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
+            <div class="grid grid-cols-1 gap-6 p-6 md:grid-cols-3">
               <app-select
                 label="ปีงบประมาณ"
                 [control]="form.controls.fiscal_year_id"
@@ -48,7 +48,6 @@
                 [searchable]="false"
                 [clearable]="false"
               />
-
               <app-select
                 label="รหัสโครงการ"
                 [control]="form.controls.project_id"
@@ -58,6 +57,16 @@
                 placeholder="-- เลือกรหัสโครงการ --"
                 [required]="true"
                 [searchable]="true"
+              />
+              <app-select
+                label="ประเภทการเบิกจ่าย"
+                [control]="form.controls.expense_type_id"
+                [options]="expense_types()"
+                optionLabel="expense_type_name"
+                optionValue="expense_type_id"
+                placeholder="-- เลือกประเภทการเบิกจ่าย --"
+                [required]="true"
+                [searchable]="false"
               />
             </div>
 
@@ -95,17 +104,6 @@
               <app-date-picker label="วันที่ตรวจรับ" [control]="form.controls.inspection_date" />
 
               <app-select
-                label="เบิกจ่ายเป็นค่าวัสดุ/จ้าง"
-                [control]="form.controls.expense_type_id"
-                [options]="expense_types()"
-                optionLabel="expense_type_name"
-                optionValue="expense_type_id"
-                placeholder="-- เลือกเบิกจ่ายเป็นค่าวัสดุ --"
-                [required]="true"
-                [searchable]="false"
-              />
-
-              <app-select
                 label="บริษัท/ร้าน"
                 [control]="form.controls.vendor_id"
                 [options]="vendors()"
@@ -113,27 +111,10 @@
                 optionValue="vendor_id"
                 placeholder="-- เลือกบริษัท/ร้าน --"
                 [required]="true"
+                [showNotFoundAction]="true"
+                [notFoundActionLabel]="'+ เพิ่มบริษัทนี้'"
+                (notFoundAction)="openVendorQuickCreate($event)"
               />
-            </div>
-
-            <div class="-mt-5 grid grid-cols-1 gap-6 px-6 pb-6 md:grid-cols-3">
-              <app-input
-                label="จำนวนเงิน"
-                type="number"
-                [control]="form.controls.total_amount"
-                placeholder="กรอกจำนวนเงิน"
-              />
-
-              <div class="space-y-2">
-                <label class="text-sm font-bold text-slate-700">จำนวนเงินเป็นตัวอักษร</label>
-
-                <div
-                  class="w-full rounded-xl border border-slate-300 bg-slate-100 px-4 py-3 text-slate-600"
-                >
-                  {{ form.controls.amount_text.value || 'ศูนย์บาทถ้วน' }}
-                </div>
-              </div>
-
               <app-select
                 label="หมวดเงิน"
                 [control]="form.controls.fund_category_id"
@@ -148,12 +129,12 @@
 
             <div class="-mt-5 grid grid-cols-1 gap-6 px-6 pb-6 md:grid-cols-3">
               <app-select
-                label="งบประมาณ"
+                label="ประเภทงบประมาณ"
                 [control]="form.controls.budget_source_id"
                 [options]="budget_sources()"
                 optionLabel="budget_source_name"
                 optionValue="budget_source_id"
-                placeholder="-- เลือกงบประมาณ --"
+                placeholder="-- เลือกประเภทงบประมาณ --"
                 [required]="true"
                 [searchable]="false"
               />
@@ -165,7 +146,6 @@
                 optionLabel="full_name"
                 optionValue="staff_id"
                 placeholder="-- เลือกผู้เบิกจ่าย --"
-                [required]="true"
               />
 
               <app-select
@@ -204,15 +184,23 @@
                 [acquisitionMethods]="aquisition_methods()"
                 [assetCategories]="asset_category()"
                 [units]="unit()"
-                (payloadChange)="assetPayload.set($event)"
+                (payloadChange)="onAssetPayloadChange($event)"
                 (validityChange)="isAssetSectionValid.set($event)"
               />
             }
             @if (isHireType() && !this.isEditMode()) {
               <app-procurement-hire-section
                 [units]="unit()"
-                (payloadChange)="hirePayload.set($event)"
+                (payloadChange)="onHirePayloadChange($event)"
                 (validityChange)="isHireSectionValid.set($event)"
+              />
+            }
+
+            @if (isMaterialType() && !isEditMode()) {
+              <app-procurement-material-section
+                [materialItems]="material_items()"
+                (payloadChange)="onMaterialPayloadChange($event)"
+                (validityChange)="isMaterialSectionValid.set($event)"
               />
             }
 
@@ -250,3 +238,25 @@
     </div>
   </div>
 </div>
+
+<app-procurement-save-confirmation-modal
+  [isOpen]="isConfirmModalOpen()"
+  [isSubmitting]="isSubmitting()"
+  [modeLabel]="confirmationModeLabel()"
+  [documentNo]="form.controls.document_no.value || ''"
+  [expenseTypeName]="selectedExpenseTypeName()"
+  [vendorName]="selectedVendorName()"
+  [totalAmount]="confirmationTotalAmount()"
+  [amountText]="form.controls.amount_text.value || ''"
+  [sections]="confirmationSections()"
+  (close)="closeConfirmModal()"
+  (confirm)="confirmSave()"
+/>
+
+<app-procurement-vendor-quick-create-modal
+  [isOpen]="isVendorModalOpen()"
+  [isSubmitting]="isCreatingVendor()"
+  [initialVendorName]="pendingVendorName()"
+  (close)="closeVendorQuickCreate()"
+  (save)="createVendorQuick($event)"
+/>

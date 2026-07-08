@@ -641,7 +641,7 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("unit_id")
+                    b.Property<int?>("unit_id")
                         .HasColumnType("int");
 
                     b.Property<decimal>("unit_price")
@@ -657,6 +657,58 @@ namespace Infrastructure.Migrations
                     b.HasIndex("unit_id");
 
                     b.ToTable("hireDetails");
+                });
+
+            modelBuilder.Entity("Core.Entities.MaterialIssueDetail", b =>
+                {
+                    b.Property<int>("issue_detail_id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("issue_detail_id"));
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("is_active")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("issue_date")
+                        .HasColumnType("date");
+
+                    b.Property<int>("material_item_id")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("procurement_record_id")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("quantity")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("remark")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("staff_id")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("total_amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("unit_price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("issue_detail_id");
+
+                    b.HasIndex("material_item_id");
+
+                    b.HasIndex("procurement_record_id");
+
+                    b.HasIndex("staff_id");
+
+                    b.ToTable("materialIssueDetails");
                 });
 
             modelBuilder.Entity("Core.Entities.MaterialItem", b =>
@@ -720,6 +772,177 @@ namespace Infrastructure.Migrations
                     b.HasIndex("unit_id");
 
                     b.ToTable("materialItems");
+                });
+
+            modelBuilder.Entity("Core.Entities.MaterialReceiveDetail", b =>
+                {
+                    b.Property<int>("receive_detail_id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("receive_detail_id"));
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("is_active")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("item_no")
+                        .HasColumnType("int");
+
+                    b.Property<int>("material_item_id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("operation_reason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("procurement_record_id")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("quantity")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("total_amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("unit_price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("receive_detail_id");
+
+                    b.HasIndex("material_item_id");
+
+                    b.HasIndex("procurement_record_id");
+
+                    b.ToTable("materialReceiveDetails");
+                });
+
+            modelBuilder.Entity("Core.Entities.MaterialStockCard", b =>
+                {
+                    b.Property<int>("stock_card_id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("stock_card_id"));
+
+                    b.Property<string>("StaffName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("balance_qty")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("department_id")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("fiscal_year_id")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("is_active")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("issue_detail_id")
+                        .HasColumnType("int");
+
+                    b.Property<int>("material_item_id")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("procurement_record_id")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("quantity_in")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("quantity_out")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("receive_detail_id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("reference_document_no")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("total_amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("transaction_date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("transaction_type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<decimal>("unit_price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("stock_card_id");
+
+                    b.HasIndex("department_id");
+
+                    b.HasIndex("fiscal_year_id");
+
+                    b.HasIndex("issue_detail_id");
+
+                    b.HasIndex("material_item_id");
+
+                    b.HasIndex("receive_detail_id");
+
+                    b.ToTable("materialStockCards");
+                });
+
+            modelBuilder.Entity("Core.Entities.MaterialWithdrawal", b =>
+                {
+                    b.Property<int>("material_withdrawal_id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("material_withdrawal_id"));
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("is_active")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("material_receive_id")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("procurement_record_id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("receive_document_no")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("remark")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("staff_id")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("withdrawal_document_no")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("material_withdrawal_id");
+
+                    b.HasIndex("procurement_record_id");
+
+                    b.HasIndex("staff_id");
+
+                    b.ToTable("materialWithdrawals");
                 });
 
             modelBuilder.Entity("Core.Entities.Operation_types", b =>
@@ -866,7 +1089,7 @@ namespace Infrastructure.Migrations
                     b.Property<string>("remark")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("staff_id")
+                    b.Property<int?>("staff_id")
                         .HasColumnType("int");
 
                     b.Property<string>("status")
@@ -1347,13 +1570,34 @@ namespace Infrastructure.Migrations
 
                     b.HasOne("MaterialUnit", "unit")
                         .WithMany()
-                        .HasForeignKey("unit_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("unit_id");
 
                     b.Navigation("procurement_record");
 
                     b.Navigation("unit");
+                });
+
+            modelBuilder.Entity("Core.Entities.MaterialIssueDetail", b =>
+                {
+                    b.HasOne("Core.Entities.MaterialItem", "MaterialItem")
+                        .WithMany()
+                        .HasForeignKey("material_item_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Core.Entities.Procurement_records", "ProcurementRecord")
+                        .WithMany()
+                        .HasForeignKey("procurement_record_id");
+
+                    b.HasOne("Core.Entities.Staffs", "Requester")
+                        .WithMany()
+                        .HasForeignKey("staff_id");
+
+                    b.Navigation("MaterialItem");
+
+                    b.Navigation("ProcurementRecord");
+
+                    b.Navigation("Requester");
                 });
 
             modelBuilder.Entity("Core.Entities.MaterialItem", b =>
@@ -1365,6 +1609,79 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Unit");
+                });
+
+            modelBuilder.Entity("Core.Entities.MaterialReceiveDetail", b =>
+                {
+                    b.HasOne("Core.Entities.MaterialItem", "MaterialItem")
+                        .WithMany()
+                        .HasForeignKey("material_item_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Core.Entities.Procurement_records", "ProcurementRecord")
+                        .WithMany()
+                        .HasForeignKey("procurement_record_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MaterialItem");
+
+                    b.Navigation("ProcurementRecord");
+                });
+
+            modelBuilder.Entity("Core.Entities.MaterialStockCard", b =>
+                {
+                    b.HasOne("Core.Entities.Departments", "Department")
+                        .WithMany()
+                        .HasForeignKey("department_id");
+
+                    b.HasOne("Core.Entities.Fiscal_years", "fiscal_Years")
+                        .WithMany()
+                        .HasForeignKey("fiscal_year_id");
+
+                    b.HasOne("Core.Entities.MaterialIssueDetail", "IssueDetail")
+                        .WithMany()
+                        .HasForeignKey("issue_detail_id");
+
+                    b.HasOne("Core.Entities.MaterialItem", "MaterialItem")
+                        .WithMany()
+                        .HasForeignKey("material_item_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Core.Entities.MaterialReceiveDetail", "ReceiveDetail")
+                        .WithMany()
+                        .HasForeignKey("receive_detail_id");
+
+                    b.Navigation("Department");
+
+                    b.Navigation("IssueDetail");
+
+                    b.Navigation("MaterialItem");
+
+                    b.Navigation("ReceiveDetail");
+
+                    b.Navigation("fiscal_Years");
+                });
+
+            modelBuilder.Entity("Core.Entities.MaterialWithdrawal", b =>
+                {
+                    b.HasOne("Core.Entities.Procurement_records", "ProcurementRecord")
+                        .WithMany()
+                        .HasForeignKey("procurement_record_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Core.Entities.Staffs", "staffs")
+                        .WithMany()
+                        .HasForeignKey("staff_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ProcurementRecord");
+
+                    b.Navigation("staffs");
                 });
 
             modelBuilder.Entity("Core.Entities.Procurement_records", b =>
@@ -1414,8 +1731,7 @@ namespace Infrastructure.Migrations
                     b.HasOne("Core.Entities.Staffs", "staffs")
                         .WithMany()
                         .HasForeignKey("staff_id")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Core.Entities.Vendors", "vendors")
                         .WithMany()

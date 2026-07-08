@@ -28,7 +28,7 @@ namespace Core.Entities
         public int procurement_record_id { get; set; }
         [ForeignKey("procurement_record_id")]
         public Procurement_records? procurement_record { get; set; }
-        public int unit_id { get; set; }
+        public int? unit_id { get; set; }
         [ForeignKey("unit_id")]
         public MaterialUnit? unit { get; set; }
 

@@ -54,6 +54,6 @@ namespace APi.DTOs
         public int vendor_id { get; set; }
         public int fund_category_id { get; set; }
         public int budget_source_id { get; set; }
-        public int staff_id { get; set; }
+        public int? staff_id { get; set; }
     }
 }

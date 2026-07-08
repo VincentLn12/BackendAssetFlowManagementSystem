@@ -1,0 +1,1 @@
+import{a as s}from"./chunk-UGXDRKLC.js";var m=class{params=new s;onSearch(a,r){this.params.search=a,this.params.pageNumber=1,r()}onPageChange(a,r){this.params.pageNumber=a,r()}onSort(a,r){this.params.sort=a,this.params.pageNumber=1,r()}};export{m as a};

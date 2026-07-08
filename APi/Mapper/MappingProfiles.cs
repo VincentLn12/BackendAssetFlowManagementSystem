@@ -37,11 +37,9 @@ public class MappingProfiles : Profile
             )
             .ForMember(
                 d => d.staff_name,
-                o => o.MapFrom(s =>
-                    s.staff != null
-                        ? s.staff.first_name + " " + s.staff.last_name
-                        : null
-                )
+               o => o.MapFrom(s =>
+                $"{s.staff!.Prefixes!.prefix_name}{s.staff.first_name} {s.staff.last_name}"
+            )
             );
         CreateMap<ProjectAddUpdateDto, Projects>();
 
@@ -205,6 +203,40 @@ public class MappingProfiles : Profile
             );
 
         CreateMap<MaterialItemDto, MaterialItem>();
+        //การเบิกวัสดุ
+        CreateMap<MaterialIssueDetail, MaterialIssueDetailDto>()
+            .ForMember(
+            d => d.staff_fullname,
+            o => o.MapFrom(s =>
+                s.Requester != null
+                    ? $"{s.Requester.Prefixes!.prefix_name}{s.Requester.first_name} {s.Requester.last_name}"
+                    : null
+            )
+        );
+        CreateMap<MaterialIssueDetailDto, MaterialIssueDetail>();
+
+        //การรับวัสดุ
+        CreateMap<MaterialReceiveDetail, MaterialReceiveDetailDto>()
+            .ForMember(
+            d => d.material_name,
+            o => o.MapFrom(s =>
+                s.MaterialItem != null
+                    ? s.MaterialItem.material_name
+                    : null
+            )
+        );
+        CreateMap<MaterialReceiveDetailDto, MaterialReceiveDetail>() ;
+        CreateMap<MaterialReceiveDetailCreateDto, MaterialReceiveDetail>();
+
+        CreateMap<MaterialWithdrawal, MaterialWithdrawalDto>()
+         .ForMember(
+         d => d.staff_name,
+         o => o.MapFrom(s =>
+             s.staffs != null
+                 ? $"{s.staffs.Prefixes!.prefix_name}{s.staffs.first_name} {s.staffs.last_name}"   
+                 : null
+         ));
+        CreateMap<MaterialWithdrawalCreateDto, MaterialWithdrawal>();
 
     }
 }

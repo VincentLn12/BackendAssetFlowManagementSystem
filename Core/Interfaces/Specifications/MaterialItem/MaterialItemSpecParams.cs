@@ -13,5 +13,7 @@ namespace Core.Interfaces.Specifications.MaterialItem
             get => _search ?? "";
             set => _search = value.ToLower();
         }
+
+        public int? FiscalYearId { get; set; }
     }
 }

@@ -14,11 +14,9 @@ namespace Core.Entities
 
         [StringLength(500)]
         public string material_name { get; set; } = string.Empty;
-
         public string? specification { get; set; }
 
-        public int unit_id { get; set; }
-
+      
         [Column(TypeName = "decimal(18,2)")]
         public decimal? opening_balance { get; set; }
 
@@ -41,11 +39,9 @@ namespace Core.Entities
         [Column(TypeName = "decimal(18,2)")]
         public decimal? min_stock { get; set; }
 
-
         // Navigation Properties
+        public int unit_id { get; set; }
         [ForeignKey("unit_id")]
         public MaterialUnit? Unit { get; set; }
-
-    
     }
 }

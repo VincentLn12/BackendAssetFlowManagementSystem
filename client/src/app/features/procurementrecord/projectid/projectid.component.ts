@@ -118,10 +118,7 @@ export class ProjectidComponent {
         break;
 
       case 'pathTo':
-        if (
-          procurementrecord.expense_type_name === 'ครุภัณฑ์' ||
-          procurementrecord.expense_type_name === 'วัสดุ'
-        ) {
+        if (procurementrecord.expense_type_name === 'ครุภัณฑ์') {
           this.router.navigate(['/admin/assetItems', procurementrecord.procurement_record_id], {
             state: { procurementrecord },
           });
@@ -129,13 +126,38 @@ export class ProjectidComponent {
           this.router.navigate(['/admin/hireDetails', procurementrecord.procurement_record_id], {
             state: { procurementrecord },
           });
+        } else if (procurementrecord.expense_type_name === 'วัสดุ') {
+          this.router.navigate(
+            ['/admin/materialReceiveDetails', procurementrecord.procurement_record_id],
+            {
+              state: {
+                procurementrecord,
+                project_id: this.project_id(),
+                projectstate: this.projectstate,
+              },
+            },
+          );
         }
         break;
 
       case 'withdraw':
-        this.router.navigate(['/admin/AssetWithdrawal', procurementrecord.procurement_record_id], {
-          state: { procurementrecord },
-        });
+        if (procurementrecord.expense_type_name === 'ครุภัณฑ์') {
+          this.router.navigate(
+            ['/admin/AssetWithdrawal', procurementrecord.procurement_record_id],
+            {
+              state: { procurementrecord },
+            },
+          );
+        } else if (procurementrecord.expense_type_name === 'วัสดุ') {
+          this.router.navigate(
+            ['/admin/MaterialWithdrawal', procurementrecord.procurement_record_id],
+            {
+              state: { procurementrecord },
+            },
+          );
+        } else {
+          this.alertService.error('ประเภทนี้ไม่มีระบบเบิก', 'test');
+        }
         break;
     }
   }

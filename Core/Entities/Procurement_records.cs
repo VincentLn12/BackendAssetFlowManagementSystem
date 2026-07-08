@@ -62,7 +62,7 @@ namespace Core.Entities
         public Budget_sources budget_Sources { get; set; } = null!;
 
         //ผู้เบิกจ่าย
-        public int staff_id { get; set; }
+        public int? staff_id { get; set; }
         [ForeignKey("staff_id")]
         [JsonIgnore]
         public Staffs staffs { get; set; } = null!;

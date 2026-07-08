@@ -10,11 +10,18 @@ import { ProjectsService } from '../service/projects.service';
 import { SelectComponent } from '../../../../shared';
 import { FiscalyearsService } from '../../fiscalyears/service/fiscalyears.service';
 import { StaffsService } from '../../staffs/service/staffsType.service';
+import { DatePickerComponent } from '../../../shared/date-picker/date-picker.component';
 
 @Component({
   selector: 'app-addupdate',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, InputComponent, SelectComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    InputComponent,
+    SelectComponent,
+    DatePickerComponent,
+  ],
   templateUrl: './addupdate.component.html',
 })
 export class ProjectsAddUpdateComponent implements OnInit {
@@ -41,11 +48,12 @@ export class ProjectsAddUpdateComponent implements OnInit {
 
   form = this.fb.nonNullable.group({
     project_code: ['', [Validators.required]],
-    project_name: ['', [Validators.required]],
+    project_name: [''],
     fiscal_year_id: [null as number | null, Validators.required],
     project_budget_amount: [0, [Validators.required, Validators.min(0)]],
-    staff_id: [null as number | null, Validators.required],
+    staff_id: [null as number | null],
     filePath: [''],
+    created_at: [new Date()],
   });
 
   ngOnInit(): void {
@@ -124,7 +132,17 @@ export class ProjectsAddUpdateComponent implements OnInit {
       project_budget_amount: exp.project_budget_amount,
       staff_id: exp.staff_id,
       filePath: exp.filePath,
+      created_at: exp.created_at ? new Date(exp.created_at) : new Date(),
     });
+  }
+  private formatDate(date: any): string {
+    const d = new Date(date);
+
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
   }
 
   submit() {
@@ -144,6 +162,7 @@ export class ProjectsAddUpdateComponent implements OnInit {
         project_budget_amount: this.form.value.project_budget_amount!,
         staff_id: this.form.value.staff_id!,
         filePath: filePath ?? this.form.value.filePath ?? '',
+        created_at: this.formatDate(this.form.controls.created_at.value),
       };
 
       const request$ = this.isEditMode()

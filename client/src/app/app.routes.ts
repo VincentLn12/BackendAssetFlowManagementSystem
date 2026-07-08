@@ -507,14 +507,14 @@ export const routes: Routes = [
             path: 'project/procurementrecord/create',
             loadComponent: () =>
               import('./features/procurementrecord/projectprocurementrecordaddupdate/addupdate.component').then(
-                (m) => m.ProcurementsAddUpdateComponents,
+                (m) => m.ProcurementsAddUpdateComponent,
               ),
           },
           {
             path: 'project/procurementrecord/update/:id',
             loadComponent: () =>
               import('./features/procurementrecord/projectprocurementrecordaddupdate/addupdate.component').then(
-                (m) => m.ProcurementsAddUpdateComponents,
+                (m) => m.ProcurementsAddUpdateComponent,
               ),
           },
           // ประเภทการใช้งานครุภัณฑ์
@@ -581,6 +581,106 @@ export const routes: Routes = [
             loadComponent: () =>
               import('./features/MaterialItems/materialItems.component').then(
                 (m) => m.MaterialItemsComponent,
+              ),
+          },
+          {
+            path: 'MaterialItem/by-department/:departmentId',
+            loadComponent: () =>
+              import('./features/MaterialItems/by-department/by-department.component').then(
+                (m) => m.MaterialItemsByDepartmentComponent,
+              ),
+          },
+          // รายละเอียดการรับวัสดุ
+          {
+            path: 'materialReceiveDetails/create',
+            loadComponent: () =>
+              import('./features/materialReceiveDetail/materialReceiveDetailaddupdate/addupdate.component').then(
+                (m) => m.MaterialReceiveDetailAddUpdateComponent,
+              ),
+          },
+          {
+            path: 'materialReceiveDetails/update/:id',
+            loadComponent: () =>
+              import('./features/materialReceiveDetail/materialReceiveDetailaddupdate/addupdate.component').then(
+                (m) => m.MaterialReceiveDetailAddUpdateComponent,
+              ),
+          },
+          {
+            path: 'materialReceiveDetails/:id',
+            loadComponent: () =>
+              import('./features/materialReceiveDetail/materialReceiveDetail.component').then(
+                (m) => m.MaterialReceiveDetailComponent,
+              ),
+          },
+          {
+            path: 'MaterialStockCard/:id',
+            loadComponent: () =>
+              import('./features/materialStockCard/MaterialStockCardComponent.component').then(
+                (m) => m.MaterialStockCardComponent,
+              ),
+          },
+          // พัสดุ
+          {
+            path: 'MaterialWithdrawal/create',
+            loadComponent: () =>
+              import('./features/materialWithdrawal/materialWithdrawaladdupdate/addupdate.component').then(
+                (m) => m.MaterialWithdrawalAddUpdateComponent,
+              ),
+          },
+          {
+            path: 'MaterialWithdrawal/update/:id',
+            loadComponent: () =>
+              import('./features/materialWithdrawal/materialWithdrawaladdupdate/addupdate.component').then(
+                (m) => m.MaterialWithdrawalAddUpdateComponent,
+              ),
+          },
+          {
+            path: 'MaterialWithdrawal/:id',
+            loadComponent: () =>
+              import('./features/materialWithdrawal/materialWithdrawal.component').then(
+                (m) => m.MaterialWithdrawalComponent,
+              ),
+          },
+          {
+            path: 'MaterialIssueDetail/create',
+            loadComponent: () =>
+              import('./features/materialIssueDetail/materialIssueDetailaddupdate/addupdate.component').then(
+                (m) => m.MaterialIssueDetailAddUpdateComponent,
+              ),
+          },
+          {
+            path: 'MaterialIssueDetail/create/department/:departmentId',
+            loadComponent: () =>
+              import('./features/materialIssueDetail/materialIssueDetailaddupdate/addupdate.component').then(
+                (m) => m.MaterialIssueDetailAddUpdateComponent,
+              ),
+          },
+          {
+            path: 'MaterialIssueDetail/create/:material_item_id',
+            loadComponent: () =>
+              import('./features/materialIssueDetail/materialIssueDetailaddupdate/addupdate.component').then(
+                (m) => m.MaterialIssueDetailAddUpdateComponent,
+              ),
+          },
+          {
+            path: 'MaterialIssueDetail/create/department/:departmentId/:material_item_id',
+            loadComponent: () =>
+              import('./features/materialIssueDetail/materialIssueDetailaddupdate/addupdate.component').then(
+                (m) => m.MaterialIssueDetailAddUpdateComponent,
+              ),
+          },
+          {
+            path: 'MaterialIssueDetail/update/:id',
+            loadComponent: () =>
+              import('./features/materialIssueDetail/materialIssueDetailaddupdate/addupdate.component').then(
+                (m) => m.MaterialIssueDetailAddUpdateComponent,
+              ),
+          },
+          {
+            path: 'MaterialIssueDetail/:id',
+            loadComponent: () =>
+              import('./features/materialIssueDetail/materialIssueDetail.component').then(
+                (m) => m.MaterialIssueDetailComponent,
               ),
           },
           {

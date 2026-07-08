@@ -85,13 +85,82 @@ public class Procurement_recordsController(IUnitOfWork unit, IMapper mapper, Fil
         return BadRequest("Problem updating the procurement record");
     }
 
-    //[Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteProcurementRecord(int id)
     {
         var procurementRecord = await unit.Repository<Procurement_records>().GetByIdAsync(id);
 
-        if (procurementRecord == null) return NotFound();
+        if (procurementRecord == null)
+            return NotFound();
+
+        if (!procurementRecord.is_active)
+            return BadRequest("เอกสารนี้ถูกลบไปแล้ว");
+
+        // หา MaterialReceiveDetail ของเอกสารนี้
+        var receiveDetails = await unit.Repository<MaterialReceiveDetail>()
+                 .ListAsync(new MaterialReceiveDetailByProcurementForDeleteSpec(id));
+
+        foreach (var detail in receiveDetails)
+        {
+            var materialItem = await unit.Repository<MaterialItem>()
+                .GetByIdAsync(detail.material_item_id);
+
+            if (materialItem == null)
+                return BadRequest($"Material item not found: {detail.material_item_id}");
+
+            var oldBalance = materialItem.current_balance ?? 0;
+            var newBalance = oldBalance - detail.quantity;
+
+            if (newBalance < 0)
+                return BadRequest($"ไม่สามารถลบได้ เนื่องจากวัสดุ {materialItem.material_name} มียอดคงเหลือไม่พอ");
+
+            // หักยอดใน MaterialItem
+            materialItem.quantity_in = (materialItem.quantity_in ?? 0) - detail.quantity;
+            materialItem.current_balance = newBalance;
+            materialItem.total_amount = newBalance * (materialItem.unit_price ?? detail.unit_price);
+            materialItem.updated_at = DateTime.UtcNow;
+
+            unit.Repository<MaterialItem>().Update(materialItem);
+
+            // ปิดรายการรับเข้า
+            detail.is_active = false;
+            detail.updated_at = DateTime.UtcNow;
+            unit.Repository<MaterialReceiveDetail>().Update(detail);
+
+            // ปิด StockCard IN เดิม
+            var stockCards = await unit.Repository<MaterialStockCard>()
+             .ListAsync(new MaterialStockCardByReceiveDetailForDeleteSpec(detail.receive_detail_id));
+
+            foreach (var stockCard in stockCards)
+            {
+                stockCard.is_active = false;
+                stockCard.updated_at = DateTime.UtcNow;
+                unit.Repository<MaterialStockCard>().Update(stockCard);
+            }
+
+            // เพิ่ม StockCard กลับรายการ
+            var cancelStockCard = new MaterialStockCard
+            {
+                material_item_id = detail.material_item_id,
+                transaction_date = DateTime.UtcNow,
+                transaction_type = "CANCEL_IN",
+                reference_document_no = procurementRecord.document_no,
+                procurement_record_id = procurementRecord.procurement_record_id,
+                receive_detail_id = detail.receive_detail_id,
+                issue_detail_id = null,
+                quantity_in = 0,
+                quantity_out = detail.quantity,
+                balance_qty = newBalance,
+                unit_price = detail.unit_price,
+                total_amount = newBalance * detail.unit_price,
+                is_active = true,
+                created_at = DateTime.UtcNow,
+                fiscal_year_id = procurementRecord.fiscal_year_id,
+
+            };
+
+            unit.Repository<MaterialStockCard>().Add(cancelStockCard);
+        }
 
         procurementRecord.is_active = false;
         procurementRecord.updated_at = DateTime.UtcNow;
@@ -99,9 +168,7 @@ public class Procurement_recordsController(IUnitOfWork unit, IMapper mapper, Fil
         unit.Repository<Procurement_records>().Update(procurementRecord);
 
         if (await unit.Complete())
-        {
             return NoContent();
-        }
 
         return BadRequest("Problem deleting procurement record");
     }
@@ -109,70 +176,102 @@ public class Procurement_recordsController(IUnitOfWork unit, IMapper mapper, Fil
     [HttpPost("create-with-assets")]
     public async Task<ActionResult> CreateProcurementWithAssets(ProcurementAssetFullCreateDto dto)
     {
+        if (dto.asset_items == null || dto.asset_items.Count == 0)
+            return BadRequest("กรุณาเพิ่มข้อมูลครุภัณฑ์หลักอย่างน้อย 1 รายการ");
+
+        foreach (var assetDto in dto.asset_items)
+        {
+            if (assetDto.asset_item == null)
+                return BadRequest("กรุณาเพิ่มข้อมูลครุภัณฑ์หลัก");
+
+            if (assetDto.asset_sub_items == null || assetDto.asset_sub_items.Count == 0)
+                return BadRequest("กรุณาเพิ่มรายการครุภัณฑ์ย่อยอย่างน้อย 1 รายการ");
+        }
+
+        var totalAmount = dto.asset_items
+            .SelectMany(x => x.asset_sub_items)
+            .Sum(x => x.quantity * (x.unit_price ?? 0));
+
         var procurement = mapper.Map<Procurement_records>(dto.procurement_record);
 
+        procurement.total_amount = totalAmount;
+        procurement.amount_text = ThaiBahtTextConverter.ToThaiBahtText(totalAmount);
         procurement.is_active = true;
-        procurement.amount_text = ThaiBahtTextConverter.ToThaiBahtText(procurement.total_amount);
         procurement.created_at = DateTime.UtcNow;
-        procurement.approval_date = DateTime.UtcNow;
+        procurement.approval_date = procurement.status == "ดำเนินการแล้ว"
+            ? DateTime.UtcNow
+            : null;
 
         unit.Repository<Procurement_records>().Add(procurement);
 
         if (!await unit.Complete())
             return BadRequest("Problem creating procurement record");
 
-        var assetItem = mapper.Map<AssetItem>(dto.asset_item);
+        var createdAssetIds = new List<int>();
 
-        assetItem.procurement_record_id = procurement.procurement_record_id;
-        assetItem.is_active = true;
-        assetItem.created_at = DateTime.UtcNow;
-
-        unit.Repository<AssetItem>().Add(assetItem);
-
-        if (!await unit.Complete())
-            return BadRequest("Problem creating asset item");
-
-        foreach (var subDto in dto.asset_sub_items)
+        foreach (var assetDto in dto.asset_items)
         {
-            var subItem = mapper.Map<AssetSubItem>(subDto);
+            var assetItem = mapper.Map<AssetItem>(assetDto.asset_item);
 
-            subItem.asset_id = assetItem.asset_id;
-            subItem.is_active = true;
-            subItem.created_at = DateTime.UtcNow;
+            assetItem.procurement_record_id = procurement.procurement_record_id;
+            assetItem.is_active = true;
+            assetItem.created_at = DateTime.UtcNow;
 
-            unit.Repository<AssetSubItem>().Add(subItem);
-        }
+            unit.Repository<AssetItem>().Add(assetItem);
 
-        if (await unit.Complete())
-        {
-            return Ok(new
+            if (!await unit.Complete())
+                return BadRequest("Problem creating asset item");
+
+            createdAssetIds.Add(assetItem.asset_id);
+
+            var itemNo = 1;
+
+            foreach (var subDto in assetDto.asset_sub_items)
             {
-                procurement_record_id = procurement.procurement_record_id,
-                asset_id = assetItem.asset_id,
-                message = "Create procurement with asset successfully"
-            });
+                var subItem = mapper.Map<AssetSubItem>(subDto);
+
+                subItem.asset_id = assetItem.asset_id;
+                subItem.item_no = itemNo++;
+                subItem.total_price = subItem.quantity * (subItem.unit_price ?? 0);
+                subItem.is_active = true;
+                subItem.created_at = DateTime.UtcNow;
+
+                unit.Repository<AssetSubItem>().Add(subItem);
+            }
+
+            if (!await unit.Complete())
+                return BadRequest("Problem creating asset sub items");
         }
 
-        return BadRequest("Problem creating asset sub items");
+        return Ok(new
+        {
+            procurement_record_id = procurement.procurement_record_id,
+            asset_ids = createdAssetIds,
+            total_amount = procurement.total_amount,
+            amount_text = procurement.amount_text,
+            message = "Create procurement with multiple assets successfully"
+        });
     }
+
     [HttpPost("create-with-hire")]
     public async Task<ActionResult> CreateProcurementWithHire(
-    [FromBody] ProcurementHireFullCreateDto dto
-)
+     [FromBody] ProcurementHireFullCreateDto dto
+ )
     {
         if (dto.hire_details == null || dto.hire_details.Count == 0)
             return BadRequest("กรุณาเพิ่มรายการจัดจ้างอย่างน้อย 1 รายการ");
 
+        var totalAmount = dto.hire_details.Sum(x => x.quantity * x.unit_price);
+
         var procurement = mapper.Map<Procurement_records>(dto.procurement_record);
 
+        procurement.total_amount = totalAmount;
+        procurement.amount_text = ThaiBahtTextConverter.ToThaiBahtText(totalAmount);
         procurement.is_active = true;
-        procurement.amount_text = ThaiBahtTextConverter.ToThaiBahtText(procurement.total_amount);
         procurement.created_at = DateTime.UtcNow;
-
-        if (procurement.status == "ดำเนินการแล้ว")
-            procurement.approval_date = DateTime.UtcNow;
-        else
-            procurement.approval_date = null;
+        procurement.approval_date = procurement.status == "ดำเนินการแล้ว"
+            ? DateTime.UtcNow
+            : null;
 
         unit.Repository<Procurement_records>().Add(procurement);
 
@@ -196,11 +295,107 @@ public class Procurement_recordsController(IUnitOfWork unit, IMapper mapper, Fil
             return Ok(new
             {
                 procurement_record_id = procurement.procurement_record_id,
+                total_amount = procurement.total_amount,
+                amount_text = procurement.amount_text,
                 message = "Create procurement with hire details successfully"
             });
         }
 
         return BadRequest("Problem creating hire details");
+    }
+
+    [HttpPost("create-with-materials")]
+    public async Task<ActionResult> CreateProcurementWithMaterials(
+    [FromBody] ProcurementMaterialFullCreateDto dto
+)
+    {
+        if (dto.material_receive_details == null || dto.material_receive_details.Count == 0)
+            return BadRequest("กรุณาเพิ่มรายการพัสดุอย่างน้อย 1 รายการ");
+
+        var totalAmount = dto.material_receive_details.Sum(x => x.quantity * x.unit_price);
+
+        var procurement = mapper.Map<Procurement_records>(dto.procurement_record);
+
+        procurement.total_amount = totalAmount;
+        procurement.is_active = true;
+        procurement.amount_text = ThaiBahtTextConverter.ToThaiBahtText(procurement.total_amount);
+        procurement.created_at = DateTime.UtcNow;
+        procurement.approval_date = procurement.status == "ดำเนินการแล้ว"
+            ? DateTime.UtcNow
+            : null;
+
+
+        unit.Repository<Procurement_records>().Add(procurement);
+
+        if (!await unit.Complete())
+            return BadRequest("Problem creating procurement record");
+
+        var itemNo = 1;
+
+        foreach (var detailDto in dto.material_receive_details)
+        {
+            var materialReceiveDetail = mapper.Map<MaterialReceiveDetail>(detailDto);
+
+            materialReceiveDetail.procurement_record_id = procurement.procurement_record_id;
+            materialReceiveDetail.item_no = itemNo++;
+            materialReceiveDetail.is_active = true;
+            materialReceiveDetail.total_amount =
+                materialReceiveDetail.quantity * materialReceiveDetail.unit_price;
+
+            unit.Repository<MaterialReceiveDetail>().Add(materialReceiveDetail);
+
+            if (!await unit.Complete())
+                return BadRequest("Problem creating material receive detail");
+
+            var materialItem = await unit.Repository<MaterialItem>()
+                .GetByIdAsync(materialReceiveDetail.material_item_id);
+
+            if (materialItem == null)
+                return BadRequest($"Material item not found: {materialReceiveDetail.material_item_id}");
+
+            var oldBalance = materialItem.current_balance ?? 0;
+            var newBalance = oldBalance + materialReceiveDetail.quantity;
+
+            materialItem.quantity_in = (materialItem.quantity_in ?? 0) + materialReceiveDetail.quantity;
+            materialItem.current_balance = newBalance;
+            materialItem.unit_price = materialReceiveDetail.unit_price;
+            materialItem.total_amount = newBalance * materialReceiveDetail.unit_price;
+            materialItem.updated_at = DateTime.UtcNow;
+
+            unit.Repository<MaterialItem>().Update(materialItem);
+
+
+            var stockCard = new MaterialStockCard
+            {
+                material_item_id = materialReceiveDetail.material_item_id,
+                transaction_date = DateTime.UtcNow,
+                transaction_type = "IN",
+                reference_document_no = procurement.document_no,
+                receive_detail_id = materialReceiveDetail.receive_detail_id,
+                procurement_record_id = procurement.procurement_record_id,
+                issue_detail_id = null,
+                quantity_in = materialReceiveDetail.quantity,
+                quantity_out = 0,
+                balance_qty = newBalance,
+                unit_price = materialReceiveDetail.unit_price,
+                total_amount = newBalance * materialReceiveDetail.unit_price,
+                fiscal_year_id = procurement.fiscal_year_id,
+                is_active = true,
+                created_at = DateTime.UtcNow,
+                department_id = procurement.department_id,
+            };
+
+            unit.Repository<MaterialStockCard>().Add(stockCard);
+
+            if (!await unit.Complete())
+                return BadRequest("Problem creating stock transaction");
+        }
+
+        return Ok(new
+        {
+            procurement_record_id = procurement.procurement_record_id,
+            message = "Create procurement with materials successfully"
+        });
     }
 
     [HttpPost("upload")]

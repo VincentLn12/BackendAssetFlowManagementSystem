@@ -51,10 +51,9 @@ export interface procurementrecordCreateTypes {
   vendor_id: number;
   fund_category_id: number;
   budget_source_id: number;
-  staff_id: number;
+  staff_id?: number;
   attachment_file_path: string;
 }
-
 export interface assetSubItemCreateTypes {
   asset_sub_item_id?: number | null;
   asset_id?: number | null;
@@ -68,10 +67,14 @@ export interface assetSubItemCreateTypes {
   useful_life_year: number;
 }
 
-export interface procurementWithAssetsCreateTypes {
-  procurement_record: procurementrecordCreateTypes;
+export interface assetItemWithSubItemsCreateTypes {
   asset_item: assetItemsCreateTypes;
   asset_sub_items: assetSubItemCreateTypes[];
+}
+
+export interface procurementWithAssetsCreateTypes {
+  procurement_record: procurementrecordCreateTypes;
+  asset_items: assetItemWithSubItemsCreateTypes[];
 }
 
 export interface hireDetailCreateTypes {
@@ -80,7 +83,7 @@ export interface hireDetailCreateTypes {
   item_no: number;
   hire_name: string;
   quantity: number;
-  unit_id: number | null;
+  unit_id?: number | null;
   unit_price: number;
   total_amount: number;
   total_text: string;
@@ -91,4 +94,20 @@ export interface hireDetailCreateTypes {
 export interface procurementWithHireCreateTypes {
   procurement_record: procurementrecordCreateTypes;
   hire_details: hireDetailCreateTypes[];
+}
+
+export interface materialReceiveDetailCreateTypes {
+  receive_detail_id: number;
+  procurement_record_id: number;
+  item_no: number;
+  material_item_id: number | null;
+  quantity: number;
+  unit_price: number;
+  total_amount: number;
+  operation_reason: string | null;
+}
+
+export interface procurementWithMaterialsCreateTypes {
+  procurement_record: procurementrecordCreateTypes;
+  material_receive_details: materialReceiveDetailCreateTypes[];
 }

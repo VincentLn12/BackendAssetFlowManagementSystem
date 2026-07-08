@@ -53,6 +53,14 @@ public class StoreContext(DbContextOptions options) : IdentityDbContext<AppUser>
     public DbSet<AssetSubItemHistory> assetSubItemHistories { get; set; }
     //รายการสินค้า
     public DbSet<MaterialItem> materialItems { get; set; }
+    //เบิกจ่ายวัสดุ
+    public DbSet<MaterialIssueDetail> materialIssueDetails { get; set; }
+    //รับเข้าวัสดุ
+    public DbSet<MaterialReceiveDetail> materialReceiveDetails { get; set; }
+    //transaction วัสดุ
+    public DbSet<MaterialStockCard> materialStockCards { get; set; }
+    //ประวัติการเบิกจ่ายวัสดุ
+    public DbSet<MaterialWithdrawal> materialWithdrawals { get; set; }
 
 
 

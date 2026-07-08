@@ -28,7 +28,7 @@
     {
         public int? project_id { get; set; }
         public string project_code { get; set; } = string.Empty;
-        public string project_name { get; set; } = string.Empty;
+        public string? project_name { get; set; } = string.Empty;
         public int fiscal_year_id { get; set; }
         public decimal project_budget_amount { get; set; }
         public int? staff_id { get; set; }

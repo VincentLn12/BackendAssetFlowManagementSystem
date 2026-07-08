@@ -13,5 +13,7 @@ namespace Core.Interfaces.Specifications.Projects
             get => _search ?? "";
             set => _search = value.ToLower();
         }
+        public int? FiscalYearId { get; set; }
+
     }
 }

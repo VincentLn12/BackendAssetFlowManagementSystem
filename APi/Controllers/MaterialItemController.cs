@@ -1,24 +1,54 @@
-﻿
-using Core.Interfaces.Specifications.AssetRepair;
-using Core.Interfaces.Specifications.MaterialItem;
-
+﻿using Core.Interfaces.Specifications.MaterialItem;
 
 namespace API.Controllers;
 
 public class MaterialItemController(IUnitOfWork unit, IMapper mapper) : BaseApiController
 {
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<MaterialItemDto>>> GetMaterialItems([FromQuery] MaterialItemSpecParams materialItemParams)
+    public async Task<ActionResult<Pagination<MaterialItemDto>>> GetMaterialItems(
+       [FromQuery] MaterialItemSpecParams materialItemParams
+   )
     {
         var spec = new MaterialItemSpecification(materialItemParams);
-
         var materialItems = await unit.Repository<MaterialItem>().ListAsync(spec);
-         
-        var countSpec = new MaterialItemSpecification(materialItemParams);    
-        var totalItems = await unit.Repository<MaterialItem>()
-            .CountAsync(countSpec);
+
+        var countSpec = new MaterialItemSpecification(materialItemParams);
+        var totalItems = await unit.Repository<MaterialItem>().CountAsync(countSpec);
 
         var data = mapper.Map<List<MaterialItemDto>>(materialItems);
+
+        if (materialItemParams.FiscalYearId.HasValue && materialItemParams.FiscalYearId.Value > 0)
+        {
+            var stockCards = await unit.Repository<MaterialStockCard>().ListAllAsync();
+
+            var stockCardsByYear = stockCards
+                .Where(x =>
+                    x.is_active &&
+                    x.fiscal_year_id == materialItemParams.FiscalYearId.Value
+                )
+                .ToList();
+
+            foreach (var item in data)
+            {
+                var itemStockCards = stockCardsByYear
+                    .Where(x => x.material_item_id == item.material_item_id)
+                    .ToList();
+
+                var quantityIn = itemStockCards.Sum(x => x.quantity_in);
+                var quantityOut = itemStockCards.Sum(x => x.quantity_out);
+
+                var lastStockCard = itemStockCards
+                    .OrderByDescending(x => x.transaction_date)
+                    .ThenByDescending(x => x.stock_card_id)
+                    .FirstOrDefault();
+
+                item.quantity_in = quantityIn;
+                item.quantity_out = quantityOut;
+                item.current_balance = lastStockCard?.balance_qty ?? 0;
+                item.unit_price = lastStockCard?.unit_price ?? item.unit_price;
+                item.total_amount = item.current_balance * item.unit_price;
+            }
+        }
 
         return Ok(new Pagination<MaterialItemDto>(
             materialItemParams.PageIndex,
@@ -27,7 +57,79 @@ public class MaterialItemController(IUnitOfWork unit, IMapper mapper) : BaseApiC
             data
         ));
     }
-  
+
+    [HttpGet("by-department/{departmentId:int}")]
+    public async Task<ActionResult<List<MaterialItemDto>>> GetMaterialItemsByDepartment(
+      int departmentId,
+      [FromQuery] int? fiscal_year_id,
+      [FromQuery] string? search
+  )
+    {
+        var spec = new MaterialItemSpecification(new MaterialItemSpecParams
+        {
+            PageIndex = 1,
+            PageSize = 1000
+        });
+
+        var materialItems = await unit.Repository<MaterialItem>().ListAsync(spec);
+        var stockCards = await unit.Repository<MaterialStockCard>().ListAllAsync();
+
+        var stockCardsByDepartment = stockCards
+            .Where(x =>
+                x.is_active &&
+                x.department_id == departmentId &&
+                (!fiscal_year_id.HasValue || x.fiscal_year_id == fiscal_year_id.Value)
+            )
+            .ToList();
+
+        var data = materialItems
+            .Where(x =>
+                x.is_active &&
+                (
+                    string.IsNullOrWhiteSpace(search) ||
+                    x.material_name.Contains(search) ||
+                    x.material_code.Contains(search)
+                )
+            )
+            .Select(item =>
+            {
+                var itemStockCards = stockCardsByDepartment
+                    .Where(sc => sc.material_item_id == item.material_item_id)
+                    .OrderBy(sc => sc.transaction_date)
+                    .ThenBy(sc => sc.stock_card_id)
+                    .ToList();
+
+                var quantityIn = itemStockCards.Sum(x => x.quantity_in);
+                var quantityOut = itemStockCards.Sum(x => x.quantity_out);
+
+                var lastStockCard = itemStockCards
+                    .OrderByDescending(x => x.transaction_date)
+                    .ThenByDescending(x => x.stock_card_id)
+                    .FirstOrDefault();
+
+                var balance = lastStockCard?.balance_qty ?? 0;
+                var unitPrice = lastStockCard?.unit_price ?? item.unit_price;
+
+                return new MaterialItemDto
+                {
+                    material_item_id = item.material_item_id,
+                    material_code = item.material_code,
+                    material_name = item.material_name,
+                    unit_price = unitPrice,
+                    unit_id = item.unit_id,
+                    unit_name = item.Unit != null ? item.Unit.unit_name : null,
+                    quantity_in = quantityIn,
+                    quantity_out = quantityOut,
+                    current_balance = balance,
+                    total_amount = balance * unitPrice
+                };
+            })
+            .Where(x => x.current_balance > 0 || x.quantity_in > 0 || x.quantity_out > 0)
+            .ToList();
+
+        return Ok(data);
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<MaterialItemDto>> GetMaterialItem(int id)
     {
@@ -100,4 +202,48 @@ public class MaterialItemController(IUnitOfWork unit, IMapper mapper) : BaseApiC
         return BadRequest("Problem deleting material item");
     }
 
+    [HttpPost("{id}/copy")]
+    public async Task<ActionResult<MaterialItemDto>> CopyMaterialItem(int id)
+    {
+        var existingMaterialItem = await unit.Repository<MaterialItem>()
+            .GetByIdAsync(id);
+
+        if (existingMaterialItem == null)
+            return NotFound("Material item not found");
+
+        var newMaterialItem = new MaterialItem
+        {
+            material_code = existingMaterialItem.material_code + "-COPY",
+            material_name = existingMaterialItem.material_name + " (Copy)",
+            specification = existingMaterialItem.specification,
+            unit_id = existingMaterialItem.unit_id,
+
+            opening_balance = 0,
+            quantity_in = 0,
+            quantity_out = 0,
+            current_balance = 0,
+
+            unit_price = existingMaterialItem.unit_price,
+            total_amount = 0,
+
+            remark = existingMaterialItem.remark,
+            min_stock = existingMaterialItem.min_stock,
+
+            is_active = true,
+            created_at = DateTime.UtcNow
+        };
+
+        unit.Repository<MaterialItem>().Add(newMaterialItem);
+
+        if (await unit.Complete())
+        {
+            return CreatedAtAction(
+                nameof(GetMaterialItem),
+                new { id = newMaterialItem.material_item_id },
+                mapper.Map<MaterialItemDto>(newMaterialItem)
+            );
+        }
+
+        return BadRequest("Problem copying material item");
+    }
 }

@@ -1,0 +1,1 @@
+import{ab as i}from"./chunk-II3XZO7Q.js";var n=class r{transform(t){if(!t)return"-";let e=new Date(t);return Number.isNaN(e.getTime())?"-":e.toLocaleDateString("th-TH",{year:"numeric",month:"short",day:"numeric"})}static \u0275fac=function(e){return new(e||r)};static \u0275pipe=i({name:"thaiDate",type:r,pure:!0})};export{n as a};
