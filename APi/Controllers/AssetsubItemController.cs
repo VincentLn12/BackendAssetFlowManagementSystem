@@ -1,4 +1,4 @@
-﻿
+
 using Core.Interfaces.Specifications.AssetSubItem;
 
 
@@ -122,4 +122,56 @@ public class AssetsubItemController(IUnitOfWork unit, IMapper mapper) : BaseApiC
         return BadRequest("Problem deleting asset sub item");
     }
 
+    [HttpPost("{id}/dispose")]
+    public async Task<IActionResult> DisposeAssetSubItem(int id, AssetSubItemDisposalDto dto)
+    {
+        await unit.BeginTransactionAsync();
+        try
+        {
+            var assetSubItem = await unit.Repository<AssetSubItem>().GetByIdAsync(id);
+            if (assetSubItem == null) return NotFound("Asset sub item not found");
+
+            if (assetSubItem.status == "จำหน่ายแล้ว")
+                return BadRequest("This asset sub item has already been disposed");
+
+            // Update sub-item status
+            assetSubItem.status = "จำหน่ายแล้ว";
+            assetSubItem.updated_at = DateTime.UtcNow;
+            unit.Repository<AssetSubItem>().Update(assetSubItem);
+
+            // Add disposal transaction record
+            var disposal = mapper.Map<AssetSubItemDisposal>(dto);
+            disposal.asset_sub_item_id = id;
+            disposal.quantity_disposed = assetSubItem.quantity; // default to entire quantity
+            disposal.is_active = true;
+            disposal.created_at = DateTime.UtcNow;
+
+            unit.Repository<AssetSubItemDisposal>().Add(disposal);
+
+            if (await unit.Complete())
+            {
+                await unit.CommitTransactionAsync();
+                return Ok(new { message = "Asset sub item disposed successfully" });
+            }
+
+            await unit.RollbackTransactionAsync();
+            return BadRequest("Problem disposing asset sub item");
+        }
+        catch (Exception ex)
+        {
+            await unit.RollbackTransactionAsync();
+            return StatusCode(500, $"An error occurred during disposal transaction: {ex.Message}");
+        }
+    }
+
+    [HttpGet("{id}/disposal")]
+    public async Task<ActionResult<AssetSubItemDisposalDto>> GetAssetSubItemDisposal(int id)
+    {
+        var spec = new Core.Specifications.BaseSpecification<AssetSubItemDisposal>(x => x.asset_sub_item_id == id);
+        var disposal = await unit.Repository<AssetSubItemDisposal>().GetEntityWithSpec(spec);
+
+        if (disposal == null) return NotFound("Disposal record not found for this sub item");
+
+        return mapper.Map<AssetSubItemDisposalDto>(disposal);
+    }
 }

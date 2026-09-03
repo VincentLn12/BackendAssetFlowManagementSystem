@@ -17,6 +17,62 @@ export const routes: Routes = [
     component: HeaderComponent,
     children: [
       { path: '', component: HomeComponent },
+      {
+        path: 'portal',
+        loadComponent: () =>
+          import('./features/public-portal/staffs/portal-staffs.component').then(
+            (m) => m.PortalStaffsComponent,
+          ),
+      },
+      {
+        path: 'portal/staffs/:staffId/years',
+        loadComponent: () =>
+          import('./features/public-portal/years/portal-staff-years.component').then(
+            (m) => m.PortalStaffYearsComponent,
+          ),
+      },
+      {
+        path: 'portal/staffs/:staffId/dashboard',
+        loadComponent: () =>
+          import('./features/public-portal/dashboard/portal-staff-dashboard.component').then(
+            (m) => m.PortalStaffDashboardComponent,
+          ),
+      },
+      {
+        path: 'portal/staffs/:staffId/procurements',
+        loadComponent: () =>
+          import('./features/public-portal/procurements/portal-staff-procurements.component').then(
+            (m) => m.PortalStaffProcurementsComponent,
+          ),
+      },
+      {
+        path: 'portal/staffs/:staffId/assets',
+        loadComponent: () =>
+          import('./features/public-portal/assets/portal-staff-assets.component').then(
+            (m) => m.PortalStaffAssetsComponent,
+          ),
+      },
+      {
+        path: 'portal/staffs/:staffId/assets/:assetId/withdrawals/:withdrawalId',
+        loadComponent: () =>
+          import('./features/public-portal/assets/portal-staff-asset-detail.component').then(
+            (m) => m.PortalStaffAssetDetailComponent,
+          ),
+      },
+      {
+        path: 'portal/staffs/:staffId/procurements/:procurementId',
+        loadComponent: () =>
+          import('./features/public-portal/procurements/portal-procurement-detail.component').then(
+            (m) => m.PortalProcurementDetailComponent,
+          ),
+      },
+      {
+        path: 'portal/staffs/:staffId/projects/:projectId/procurements/:procurementId',
+        loadComponent: () =>
+          import('./features/public-portal/procurements/portal-procurement-detail.component').then(
+            (m) => m.PortalProcurementDetailComponent,
+          ),
+      },
       { path: 'test-error', component: TestErrorComponent },
       { path: 'server-error', component: ServerErrorComponent },
       { path: '', component: ServerErrorComponent },
@@ -26,6 +82,14 @@ export const routes: Routes = [
         data: { role: 'admin' },
         children: [
           { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+          {
+            path: 'settings',
+            loadComponent: () =>
+              import('./features/settings/settings.component').then(
+                (m) => m.SettingsComponent
+              ),
+          },
+
           // แผนก
           {
             path: 'departments',

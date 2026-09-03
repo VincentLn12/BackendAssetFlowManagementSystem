@@ -1,0 +1,324 @@
+<div class="public-portal min-h-screen bg-slate-100 px-4 py-5 sm:px-6 lg:px-8 font-sans text-slate-800" style="font-family: 'Sarabun', sans-serif;">
+  <div class="mx-auto max-w-7xl space-y-4 sm:space-y-5">
+    
+    <!-- Top Action Bar -->
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between bg-white px-4 py-3 sm:px-6 sm:py-4 rounded-xl border border-slate-300 shadow-sm gap-3 print:hidden">
+      <a
+        [routerLink]="['/portal/staffs', staffId, 'dashboard']"
+        [queryParams]="fiscalYearId ? { fiscal_year_id: fiscalYearId } : {}"
+        [state]="{ staff }"
+        class="inline-flex items-center justify-center sm:justify-start gap-2 text-sm font-bold text-slate-700 hover:text-blue-900 transition-colors duration-200 py-1.5 sm:py-0"
+      >
+        <i class="material-icons text-xl">arrow_back</i> 
+        <span>กลับหน้าระเบียนบุคลากร</span>
+      </a>
+      
+      <button 
+        type="button" 
+        onclick="window.print()" 
+        class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-900 text-white px-5 py-2.5 text-sm font-bold hover:bg-blue-950 transition-all duration-200 cursor-pointer shadow-sm"
+      >
+        <i class="material-icons text-lg">print</i> 
+        <span>พิมพ์เอกสารราชการ</span>
+      </button>
+    </div>
+
+    <!-- Official Document Wrapper -->
+    <div class="overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm print:shadow-none print:border-none">
+      
+      <!-- Royal University Accent Line -->
+      <div class="h-1.5 w-full bg-amber-400 print:hidden"></div>
+
+      <!-- Document Header Section -->
+      <header class="border-b border-slate-700 bg-slate-900 px-6 py-6 sm:px-8 sm:py-7 text-white print:bg-white print:text-black">
+
+        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+          <div class="space-y-3">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-white/10 border border-white/20 text-xs font-bold text-amber-300">
+              <i class="material-icons text-xs">verified</i> รายละเอียดเอกสารพัสดุและครุภัณฑ์ภาครัฐ
+            </span>
+            <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold text-white leading-tight">
+              {{ title() }}
+            </h1>
+            <div class="text-sm sm:text-base text-slate-300 space-y-1">
+              <p class="flex items-center gap-2">
+                <i class="material-icons text-sm text-amber-300">person</i>
+                <span>ผู้รับผิดชอบหลัก: <strong class="text-white font-bold">{{ staff?.full_name || 'ไม่ระบุชื่อ' }}</strong></span>
+              </p>
+              <p class="flex items-center gap-2">
+                <i class="material-icons text-sm text-amber-300">business</i>
+                <span>หน่วยงานสังกัด: <span class="text-white font-semibold">{{ staff?.department_name || '-' }}</span></span>
+              </p>
+            </div>
+          </div>
+          <!-- Royal Seal Placeholder / Emblem Grid -->
+          <div class="self-start md:self-center w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-amber-400 flex items-center justify-center text-slate-950 print:hidden">
+            <i class="material-icons text-3xl sm:text-4xl">gavel</i>
+          </div>
+        </div>
+
+        <!-- Highlight Metadata Grid (Colorful Box Cards) -->
+        @if (detail()) {
+          <div class="mt-6 grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-5 border-t border-white/15 pt-5">
+            <div class="p-3 sm:p-4 bg-white rounded-lg">
+              <span class="text-xs font-bold text-slate-500 block">ประเภทรายการ</span>
+              <span class="mt-1 text-sm sm:text-base font-extrabold text-slate-900 block">{{ detail()!.category }}</span>
+            </div>
+            <div class="p-3 sm:p-4 bg-white rounded-lg">
+              <span class="text-xs font-bold text-slate-500 block">เลขที่สัญญา / เอกสาร</span>
+              <span class="mt-1 text-sm sm:text-base font-extrabold text-blue-900 block">{{ detail()!.document_no }}</span>
+            </div>
+            <div class="p-3 sm:p-4 bg-white rounded-lg">
+              <span class="text-xs font-bold text-slate-500 block">วันที่จัดทำเอกสาร</span>
+              <span class="mt-1 text-sm sm:text-base font-extrabold text-slate-900 block">
+                {{ detail()!.document_date | thaiDate }}
+              </span>
+            </div>
+            <div class="p-3 sm:p-4 bg-white rounded-lg">
+              <span class="text-xs font-bold text-slate-500 block">สถานะดำเนินการ</span>
+              <span class="mt-1.5 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs sm:text-sm font-bold bg-emerald-700 text-white">
+                <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                {{ detail()!.status || 'อนุมัติแล้ว' }}
+              </span>
+            </div>
+            <div class="p-3 sm:p-4 bg-amber-400 rounded-lg col-span-1 sm:col-span-2 md:col-span-1">
+              <span class="text-xs font-bold text-slate-700 block">มูลค่าสัญญารวม</span>
+              <span class="mt-1 text-base sm:text-lg font-black text-slate-950 block">
+                {{ detail()!.total_amount | number: '1.2-2' }} <span class="text-xs font-bold text-slate-700">บาท</span>
+              </span>
+            </div>
+          </div>
+        }
+      </header>
+
+      <!-- Details List Section -->
+      <div class="p-4 sm:p-6 space-y-6 bg-slate-50">
+        @if (loading()) {
+          <div class="flex flex-col items-center justify-center py-20 text-slate-500">
+            <div class="border-4 border-slate-200 border-t-blue-900 rounded-full w-10 h-10 animate-spin mb-4"></div>
+            <p class="text-base font-bold">กำลังดึงข้อมูลเอกสารราชการ...</p>
+          </div>
+        } @else if (detail()) {
+          <section class="space-y-6 sm:space-y-8">
+            
+            <!-- CATEGORY: MATERIAL (วัสดุ) -->
+            @if (detail()!.category === 'วัสดุ') {
+              @for (material of groupedMaterials(); track material.material_name) {
+                <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                  
+                  <!-- Group Header Banner (Deep Navy Gradient) -->
+                  <div class="bg-gradient-to-r from-blue-900 to-indigo-950 border-b border-blue-950 px-4 py-4 sm:px-6 sm:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-white">
+                    <div class="space-y-1">
+                      <h3 class="text-sm sm:text-base font-black text-white flex items-center gap-2">
+                        <i class="material-icons text-blue-300">shopping_bag</i>
+                        {{ material.material_name }}
+                      </h3>
+                      <p class="text-xs text-blue-200">
+                        จำนวนรับเข้าคลังสะสม: <strong class="text-white">{{ material.total_quantity | number: '1.0-2' }}</strong> รายการ
+                      </p>
+                    </div>
+                    <span class="self-start sm:self-center rounded-full bg-white/10 border border-white/20 px-3 py-1 text-xs font-bold text-white">
+                      พบ {{ material.items.length }} รายการตรวจรับย่อย
+                    </span>
+                  </div>
+
+                  <!-- Mobile Layout (Cards) -->
+                  <div class="block md:hidden divide-y divide-slate-100">
+                    @for (item of material.items; track item.receive_detail_id) {
+                      <div class="p-4 space-y-2">
+                        <div class="flex justify-between items-start gap-2">
+                          <span class="text-xs font-bold text-slate-400">#{{ item.item_no }}</span>
+                          <span class="font-extrabold text-blue-900 text-sm">{{ item.total_amount | number: '1.2-2' }} บาท</span>
+                        </div>
+                        <h4 class="text-sm font-bold text-slate-800">{{ item.material_name }}</h4>
+                        <div class="grid grid-cols-2 gap-2 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                          <div>จำนวน: <strong class="text-slate-900">{{ item.quantity | number: '1.0-2' }}</strong></div>
+                          <div>หน่วยละ: <strong class="text-slate-900">{{ item.unit_price | number: '1.2-2' }}</strong></div>
+                        </div>
+                        @if (item.operation_reason) {
+                          <p class="text-xs text-slate-500 italic">รายละเอียด: {{ item.operation_reason }}</p>
+                        }
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Desktop Layout (Table) -->
+                  <div class="hidden md:block overflow-x-auto">
+                    <table class="w-full border-collapse text-left">
+                      <thead>
+                        <tr class="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500">
+                          <th class="px-6 py-4 text-center w-16">ลำดับ</th>
+                          <th class="px-6 py-4">ชื่อรายการพัสดุ</th>
+                          <th class="px-6 py-4 text-right">จำนวน</th>
+                          <th class="px-6 py-4 text-right">ราคาต่อหน่วย</th>
+                          <th class="px-6 py-4 text-right">ราคารวม (บาท)</th>
+                          <th class="px-6 py-4">เหตุผลในการเบิกจ่าย / รายละเอียด</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-100 text-sm">
+                        @for (item of material.items; track item.receive_detail_id) {
+                          <tr class="hover:bg-slate-50/50 transition-colors duration-150 odd:bg-white even:bg-slate-50/30">
+                            <td class="px-6 py-4.5 text-center font-bold text-slate-400">{{ item.item_no }}</td>
+                            <td class="px-6 py-4.5 font-bold text-slate-800 text-base">{{ item.material_name }}</td>
+                            <td class="px-6 py-4.5 font-bold text-slate-900 text-right">{{ item.quantity | number: '1.0-2' }}</td>
+                            <td class="px-6 py-4.5 font-medium text-slate-600 text-right">{{ item.unit_price | number: '1.2-2' }}</td>
+                            <td class="px-6 py-4.5 font-extrabold text-blue-900 text-right bg-blue-50/40 border-x border-blue-100/50">{{ item.total_amount | number: '1.2-2' }}</td>
+                            <td class="px-6 py-4.5 text-slate-500 font-medium italic">{{ item.operation_reason || '-' }}</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              }
+            }
+
+            <!-- CATEGORY: ASSET (ครุภัณฑ์) -->
+            @if (detail()!.category === 'ครุภัณฑ์') {
+              @for (asset of groupedAssets(); track asset.withdrawal_document_no + '-' + asset.asset_name) {
+                <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                  
+                  <!-- Group Header Banner (Slate-Blue Gradient) -->
+                  <div class="bg-gradient-to-r from-slate-900 to-blue-950 border-b border-blue-950 px-4 py-4 sm:px-6 sm:py-5 text-white">
+                    <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                      <div class="space-y-2">
+                        <h3 class="text-sm sm:text-base font-black text-white flex items-center gap-2">
+                          <i class="material-icons text-blue-300">inventory_2</i>
+                          {{ asset.asset_name }}
+                        </h3>
+                        <div class="grid gap-x-6 gap-y-1.5 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 text-xs text-blue-200">
+                          <p class="flex items-center gap-1">
+                            <strong>เลขที่ใบเบิก:</strong> <span class="text-white font-bold ml-1">{{ asset.withdrawal_document_no }}</span>
+                          </p>
+                          <p class="flex items-center gap-1">
+                            <strong>วันที่ทำสัญญาเบิก:</strong> <span class="text-white font-bold ml-1">{{ asset.withdrawal_date | thaiDate }}</span>
+                          </p>
+                          <p class="flex items-center gap-1 sm:col-span-2 md:col-span-1">
+                            <strong>สถานที่เก็บรักษา:</strong> <span class="text-white font-bold ml-1">{{ asset.storage_location || '-' }}</span>
+                          </p>
+                        </div>
+                      </div>
+                      <span class="self-start md:self-center rounded-full bg-white/10 border border-white/20 px-3 py-1 text-xs font-bold text-white">
+                        {{ asset.subItems.length }} ครุภัณฑ์ย่อย
+                      </span>
+                    </div>
+                    
+                    @if (asset.purpose) {
+                      <div class="mt-3.5 bg-white border border-slate-200 p-3 rounded-lg text-xs text-slate-600 flex items-start gap-2 shadow-xs">
+                        <i class="material-icons text-slate-400 text-base mt-0.5">info</i>
+                        <span><strong>วัตถุประสงค์การใช้งาน:</strong> {{ asset.purpose }}</span>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Mobile Layout (Cards) -->
+                  <div class="block md:hidden divide-y divide-slate-100">
+                    @for (subItem of asset.subItems; track subItem.procurement_withdrawal_id + '-' + subItem.sub_item_name) {
+                      <div class="p-4 space-y-2">
+                        <h4 class="text-sm font-bold text-slate-800">{{ subItem.sub_item_name }}</h4>
+                        <div class="grid grid-cols-3 gap-2 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                          <div>จำนวน: <strong class="text-slate-900">{{ subItem.quantity ?? 0 | number: '1.0-2' }}</strong></div>
+                          <div>หน่วยละ: <strong class="text-slate-900">{{ subItem.unit_price | number: '1.2-2' }}</strong></div>
+                          <div class="text-right text-blue-900 font-bold">รวม: {{ subItem.total_price | number: '1.2-2' }}</div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Desktop Layout (Table) -->
+                  <div class="hidden md:block overflow-x-auto">
+                    <table class="w-full border-collapse text-left">
+                      <thead>
+                        <tr class="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500">
+                          <th class="px-6 py-4">ชื่อรายการครุภัณฑ์ย่อย / หมายเลข</th>
+                          <th class="px-6 py-4 text-right">จำนวน</th>
+                          <th class="px-6 py-4 text-right">ราคาต่อหน่วย</th>
+                          <th class="px-6 py-4 text-right">ราคารวม (บาท)</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-100 text-sm">
+                        @for (subItem of asset.subItems; track subItem.procurement_withdrawal_id + '-' + subItem.sub_item_name) {
+                          <tr class="hover:bg-slate-50/50 transition-colors duration-150 odd:bg-white even:bg-slate-50/30">
+                            <td class="px-6 py-4.5 font-bold text-slate-800 text-base">{{ subItem.sub_item_name }}</td>
+                            <td class="px-6 py-4.5 font-bold text-slate-900 text-right">{{ subItem.quantity ?? 0 | number: '1.0-2' }}</td>
+                            <td class="px-6 py-4.5 font-medium text-slate-600 text-right">{{ subItem.unit_price | number: '1.2-2' }}</td>
+                            <td class="px-6 py-4.5 font-extrabold text-blue-900 text-right bg-blue-50/40 border-x border-blue-100/50">{{ subItem.total_price | number: '1.2-2' }}</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              }
+            }
+
+            <!-- CATEGORY: OTHERS / HIRE (งานบริการจัดจ้าง) -->
+            @if (detail()!.category !== 'วัสดุ' && detail()!.category !== 'ครุภัณฑ์') {
+              <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                
+                <!-- Group Header Banner (Indigo Gradient) -->
+                <div class="bg-gradient-to-r from-indigo-950 to-slate-900 border-b border-indigo-950 px-4 py-4 sm:px-6 sm:py-5 text-white">
+                  <h3 class="text-sm sm:text-base font-black text-white flex items-center gap-2">
+                    <i class="material-icons text-indigo-300">construction</i>
+                    รายละเอียดสัญญางานบริการจัดจ้าง / จ้างเหมาบริการ
+                  </h3>
+                </div>
+
+                <!-- Mobile Layout (Cards) -->
+                <div class="block md:hidden divide-y divide-slate-100">
+                  @for (item of detail()!.hire_details; track item.hire_detail_id) {
+                    <div class="p-4 space-y-2">
+                      <div class="flex justify-between items-start gap-2">
+                        <span class="text-xs font-bold text-slate-400">#{{ item.item_no }}</span>
+                        <span class="font-extrabold text-blue-900 text-sm">{{ item.total_amount | number: '1.2-2' }} บาท</span>
+                      </div>
+                      <h4 class="text-sm font-bold text-slate-800">{{ item.hire_name }}</h4>
+                      <div class="grid grid-cols-2 gap-2 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                        <div>จำนวน: <strong class="text-slate-900">{{ item.quantity | number: '1.0-2' }}</strong></div>
+                        <div>ราคา/หน่วย: <strong class="text-slate-900">{{ item.unit_price | number: '1.2-2' }}</strong></div>
+                      </div>
+                      @if (item.operation_reason || item.remark) {
+                        <p class="text-xs text-slate-500 italic">รายละเอียด: {{ item.operation_reason || item.remark }}</p>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <!-- Desktop Layout (Table) -->
+                <div class="hidden md:block overflow-x-auto">
+                  <table class="w-full border-collapse text-left">
+                    <thead>
+                      <tr class="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500">
+                        <th class="px-6 py-4 text-center w-16">ลำดับ</th>
+                        <th class="px-6 py-4">ขอบเขตรายละเอียดงานจ้าง</th>
+                        <th class="px-6 py-4 text-right">จำนวน</th>
+                        <th class="px-6 py-4 text-right">หน่วยละ</th>
+                        <th class="px-6 py-4 text-right">ราคารวมสัญญา (บาท)</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-sm">
+                      @for (item of detail()!.hire_details; track item.hire_detail_id) {
+                        <tr class="hover:bg-slate-50/50 transition-colors duration-150 odd:bg-white even:bg-slate-50/30">
+                          <td class="px-6 py-4.5 text-center font-bold text-slate-400">{{ item.item_no }}</td>
+                          <td class="px-6 py-4.5">
+                            <p class="font-bold text-slate-800 text-base">{{ item.hire_name }}</p>
+                            @if (item.operation_reason || item.remark) {
+                              <p class="text-xs text-slate-500 mt-1 italic font-medium">หมายเหตุ: {{ item.operation_reason || item.remark }}</p>
+                            }
+                          </td>
+                          <td class="px-6 py-4.5 font-bold text-slate-900 text-right">{{ item.quantity | number: '1.0-2' }}</td>
+                          <td class="px-6 py-4.5 font-medium text-slate-600 text-right">{{ item.unit_price | number: '1.2-2' }}</td>
+                          <td class="px-6 py-4.5 font-extrabold text-blue-900 text-right bg-blue-50/40 border-x border-blue-100/50">{{ item.total_amount | number: '1.2-2' }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            }
+          </section>
+        }
+      </div>
+    </div>
+  </div>
+</div>

@@ -11,7 +11,6 @@ global using Core.Interfaces;
 global using API.Helpers;
 global using API.Middleware;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 

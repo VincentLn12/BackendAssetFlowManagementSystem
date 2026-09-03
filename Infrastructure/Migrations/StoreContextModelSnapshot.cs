@@ -22,53 +22,6 @@ namespace Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("API.Entities.AssetSubItemHistory", b =>
-                {
-                    b.Property<int>("sub_item_history_id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("sub_item_history_id"));
-
-                    b.Property<DateTime>("created_at")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("detail")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("history_date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("history_type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("is_active")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("procurement_withdrawal_id")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("staff_id")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("updated_at")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("usage_type_id")
-                        .HasColumnType("int");
-
-                    b.HasKey("sub_item_history_id");
-
-                    b.HasIndex("procurement_withdrawal_id");
-
-                    b.HasIndex("staff_id");
-
-                    b.HasIndex("usage_type_id");
-
-                    b.ToTable("assetSubItemHistories");
-                });
-
             modelBuilder.Entity("AssetCategory", b =>
                 {
                     b.Property<int>("asset_category_id")
@@ -185,6 +138,10 @@ namespace Infrastructure.Migrations
 
                     b.Property<int>("running_start_no")
                         .HasColumnType("int");
+
+                    b.Property<string>("status")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("sub_item_name")
                         .IsRequired()
@@ -372,6 +329,107 @@ namespace Infrastructure.Migrations
                     b.ToTable("assetRepairs");
                 });
 
+            modelBuilder.Entity("Core.Entities.AssetSubItemDisposal", b =>
+                {
+                    b.Property<int>("sub_item_disposal_id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("sub_item_disposal_id"));
+
+                    b.Property<string>("approved_by")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("asset_sub_item_id")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("disposal_date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("disposal_method")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("disposal_reason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("document_no")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("is_active")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<decimal>("quantity_disposed")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("sub_item_disposal_id");
+
+                    b.HasIndex("asset_sub_item_id");
+
+                    b.ToTable("assetSubItemDisposals");
+                });
+
+            modelBuilder.Entity("Core.Entities.AssetSubItemHistory", b =>
+                {
+                    b.Property<int>("sub_item_history_id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("sub_item_history_id"));
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("detail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("history_date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("history_type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("is_active")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("procurement_withdrawal_id")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("staff_id")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("usage_type_id")
+                        .HasColumnType("int");
+
+                    b.HasKey("sub_item_history_id");
+
+                    b.HasIndex("procurement_withdrawal_id");
+
+                    b.HasIndex("staff_id");
+
+                    b.HasIndex("usage_type_id");
+
+                    b.ToTable("assetSubItemHistories");
+                });
+
             modelBuilder.Entity("Core.Entities.AssetUsageType", b =>
                 {
                     b.Property<int>("usage_type_id")
@@ -408,6 +466,13 @@ namespace Infrastructure.Migrations
 
                     b.Property<DateTime>("created_at")
                         .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("end_date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("end_reason")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<bool>("is_active")
                         .HasColumnType("bit");
@@ -722,9 +787,6 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("created_at")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal?>("current_balance")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<bool>("is_active")
                         .HasColumnType("bit");
 
@@ -1028,6 +1090,52 @@ namespace Infrastructure.Migrations
                     b.ToTable("prefixes");
                 });
 
+            modelBuilder.Entity("Core.Entities.ProcurementRecordStatusHistory", b =>
+                {
+                    b.Property<int>("status_history_id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("status_history_id"));
+
+                    b.Property<DateTime>("changed_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("changed_by_staff_id")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("from_status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("is_active")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("procurement_record_id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("remark")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("to_status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("status_history_id");
+
+                    b.HasIndex("changed_by_staff_id");
+
+                    b.HasIndex("procurement_record_id");
+
+                    b.ToTable("procurementRecordStatusHistories");
+                });
+
             modelBuilder.Entity("Core.Entities.Procurement_records", b =>
                 {
                     b.Property<int>("procurement_record_id")
@@ -1228,6 +1336,36 @@ namespace Infrastructure.Migrations
                     b.HasIndex("prefix_id");
 
                     b.ToTable("staffs");
+                });
+
+            modelBuilder.Entity("Core.Entities.SystemSetting", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("is_active")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("logo_path")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("project_name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("id");
+
+                    b.ToTable("system_settings");
                 });
 
             modelBuilder.Entity("Core.Entities.Vendors", b =>
@@ -1451,31 +1589,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("API.Entities.AssetSubItemHistory", b =>
-                {
-                    b.HasOne("Core.Entities.AssetWithdrawal", "AssetWithdrawal")
-                        .WithMany()
-                        .HasForeignKey("procurement_withdrawal_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Core.Entities.Staffs", "Staff")
-                        .WithMany()
-                        .HasForeignKey("staff_id");
-
-                    b.HasOne("Core.Entities.AssetUsageType", "AssetUsageType")
-                        .WithMany()
-                        .HasForeignKey("usage_type_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AssetUsageType");
-
-                    b.Navigation("AssetWithdrawal");
-
-                    b.Navigation("Staff");
-                });
-
             modelBuilder.Entity("AssetItem", b =>
                 {
                     b.HasOne("Core.Entities.AcquisitionMethod", "AcquisitionMethod")
@@ -1539,6 +1652,42 @@ namespace Infrastructure.Migrations
                     b.Navigation("Staff");
 
                     b.Navigation("assetWithdrawal");
+                });
+
+            modelBuilder.Entity("Core.Entities.AssetSubItemDisposal", b =>
+                {
+                    b.HasOne("AssetSubItem", "asset_sub_item")
+                        .WithMany()
+                        .HasForeignKey("asset_sub_item_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("asset_sub_item");
+                });
+
+            modelBuilder.Entity("Core.Entities.AssetSubItemHistory", b =>
+                {
+                    b.HasOne("Core.Entities.AssetWithdrawal", "AssetWithdrawal")
+                        .WithMany()
+                        .HasForeignKey("procurement_withdrawal_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Core.Entities.Staffs", "Staff")
+                        .WithMany()
+                        .HasForeignKey("staff_id");
+
+                    b.HasOne("Core.Entities.AssetUsageType", "AssetUsageType")
+                        .WithMany()
+                        .HasForeignKey("usage_type_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AssetUsageType");
+
+                    b.Navigation("AssetWithdrawal");
+
+                    b.Navigation("Staff");
                 });
 
             modelBuilder.Entity("Core.Entities.AssetWithdrawal", b =>
@@ -1682,6 +1831,23 @@ namespace Infrastructure.Migrations
                     b.Navigation("ProcurementRecord");
 
                     b.Navigation("staffs");
+                });
+
+            modelBuilder.Entity("Core.Entities.ProcurementRecordStatusHistory", b =>
+                {
+                    b.HasOne("Core.Entities.Staffs", "ChangedByStaff")
+                        .WithMany()
+                        .HasForeignKey("changed_by_staff_id");
+
+                    b.HasOne("Core.Entities.Procurement_records", "ProcurementRecord")
+                        .WithMany()
+                        .HasForeignKey("procurement_record_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ChangedByStaff");
+
+                    b.Navigation("ProcurementRecord");
                 });
 
             modelBuilder.Entity("Core.Entities.Procurement_records", b =>

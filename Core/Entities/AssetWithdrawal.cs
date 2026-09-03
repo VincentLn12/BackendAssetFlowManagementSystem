@@ -13,6 +13,10 @@ namespace Core.Entities
         public string withdrawal_document_no { get; set; } = string.Empty;
         [Column(TypeName = "date")]
         public DateTime withdrawal_date { get; set; }
+        [Column(TypeName = "date")]
+        public DateTime? end_date { get; set; }
+        [MaxLength(50)]
+        public string? end_reason { get; set; }
         public int staff_id { get; set; }
 
         [MaxLength(255)]

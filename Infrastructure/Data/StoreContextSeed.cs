@@ -20,6 +20,18 @@ public class StoreContextSeed
             await userManager.AddToRoleAsync(user, "Admin");
         }
 
+        if (!context.system_settings.Any())
+        {
+            context.system_settings.Add(new SystemSetting
+            {
+                project_name = "ระบบบริหารพัสดุ",
+                logo_path = "/institute-Logo.png",
+                is_active = true,
+                created_at = DateTime.UtcNow
+            });
+            await context.SaveChangesAsync();
+        }
+
         var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);  
     }
 }

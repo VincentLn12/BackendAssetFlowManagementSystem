@@ -39,16 +39,11 @@ public class MaterialIssueDetailController(IUnitOfWork unit, IMapper mapper) : B
     [HttpPost]
     public async Task<ActionResult<MaterialIssueDetailDto>> CreateMaterialIssueDetail(MaterialIssueDetailDto dto)
     {
-        var materialItem = await unit.Repository<MaterialItem>()
-            .GetByIdAsync(dto.material_item_id);
-
-        if (materialItem == null)
-            return BadRequest("ไม่พบข้อมูลวัสดุ");
-
-        var currentBalance = materialItem.current_balance ?? 0;
-
         if (dto.quantity <= 0)
             return BadRequest("จำนวนเบิกต้องมากกว่า 0");
+
+        var departmentId = await GetDepartmentId(dto.procurement_record_id, dto.department_id);
+        var currentBalance = await GetLatestBalance(dto.material_item_id, departmentId);
 
         if (currentBalance < dto.quantity)
             return BadRequest($"วัสดุคงเหลือไม่พอ คงเหลือ {currentBalance}");
@@ -58,10 +53,9 @@ public class MaterialIssueDetailController(IUnitOfWork unit, IMapper mapper) : B
         materialIssueDetail.is_active = true;
         materialIssueDetail.created_at = DateTime.UtcNow;
         materialIssueDetail.issue_date ??= DateTime.UtcNow;
-        materialIssueDetail.unit_price = materialItem.unit_price ?? dto.unit_price;
+        materialIssueDetail.unit_price = await GetLatestUnitPrice(dto.material_item_id, departmentId, dto.unit_price);
         materialIssueDetail.total_amount =
             materialIssueDetail.quantity * materialIssueDetail.unit_price;
-        var departmentId = await GetDepartmentId(materialIssueDetail.procurement_record_id, dto.department_id);
 
         string staffName = string.Empty;
         if (materialIssueDetail.staff_id.HasValue)
@@ -81,13 +75,6 @@ public class MaterialIssueDetailController(IUnitOfWork unit, IMapper mapper) : B
             return BadRequest("Problem creating material issue detail");
 
         var newBalance = currentBalance - materialIssueDetail.quantity;
-
-        materialItem.quantity_out = (materialItem.quantity_out ?? 0) + materialIssueDetail.quantity;
-        materialItem.current_balance = newBalance;
-        materialItem.total_amount = newBalance * materialIssueDetail.unit_price;
-        materialItem.updated_at = DateTime.UtcNow;
-
-        unit.Repository<MaterialItem>().Update(materialItem);
 
         var issueDate = materialIssueDetail.issue_date ?? DateTime.UtcNow;
         var fiscalYearId = await GetFiscalYearId(issueDate);
@@ -123,6 +110,12 @@ public class MaterialIssueDetailController(IUnitOfWork unit, IMapper mapper) : B
         if (!await unit.Complete())
             return BadRequest("Problem creating stock card");
 
+        await RecalculateStockCards(materialIssueDetail.material_item_id, departmentId);
+        await SyncMaterialItemFromStockCards(materialIssueDetail.material_item_id);
+
+        if (!await unit.Complete())
+            return BadRequest("Problem updating stock balances");
+
         return CreatedAtAction(
             nameof(GetMaterialIssueDetail),
             new { id = materialIssueDetail.issue_detail_id },
@@ -142,13 +135,8 @@ public class MaterialIssueDetailController(IUnitOfWork unit, IMapper mapper) : B
             if (itemDto.quantity <= 0)
                 return BadRequest("จำนวนเบิกต้องมากกว่า 0");
 
-            var materialItem = await unit.Repository<MaterialItem>()
-                .GetByIdAsync(itemDto.material_item_id);
-
-            if (materialItem == null)
-                return BadRequest($"ไม่พบวัสดุ ID: {itemDto.material_item_id}");
-
-            var currentBalance = materialItem.current_balance ?? 0;
+            var departmentId = await GetDepartmentId(itemDto.procurement_record_id, itemDto.department_id);
+            var currentBalance = await GetLatestBalance(itemDto.material_item_id, departmentId);
 
             if (currentBalance < itemDto.quantity)
                 return BadRequest(
@@ -160,9 +148,8 @@ public class MaterialIssueDetailController(IUnitOfWork unit, IMapper mapper) : B
             issueDetail.is_active = true;
             issueDetail.created_at = DateTime.UtcNow;
             issueDetail.issue_date ??= DateTime.UtcNow;
-            issueDetail.unit_price = materialItem.unit_price ?? itemDto.unit_price;
+            issueDetail.unit_price = await GetLatestUnitPrice(itemDto.material_item_id, departmentId, itemDto.unit_price);
             issueDetail.total_amount = issueDetail.quantity * issueDetail.unit_price;
-            var departmentId = await GetDepartmentId(issueDetail.procurement_record_id, itemDto.department_id);
 
             unit.Repository<MaterialIssueDetail>().Add(issueDetail);
 
@@ -170,13 +157,6 @@ public class MaterialIssueDetailController(IUnitOfWork unit, IMapper mapper) : B
                 return BadRequest("Problem creating material issue detail");
 
             var newBalance = currentBalance - issueDetail.quantity;
-
-            materialItem.quantity_out = (materialItem.quantity_out ?? 0) + issueDetail.quantity;
-            materialItem.current_balance = newBalance;
-            materialItem.total_amount = newBalance * issueDetail.unit_price;
-            materialItem.updated_at = DateTime.UtcNow;
-
-            unit.Repository<MaterialItem>().Update(materialItem);
 
             string staffName = string.Empty;
 
@@ -224,6 +204,12 @@ public class MaterialIssueDetailController(IUnitOfWork unit, IMapper mapper) : B
 
             if (!await unit.Complete())
                 return BadRequest("Problem creating stock card");
+
+            await RecalculateStockCards(issueDetail.material_item_id, departmentId);
+            await SyncMaterialItemFromStockCards(issueDetail.material_item_id);
+
+            if (!await unit.Complete())
+                return BadRequest("Problem updating stock balances");
         }
 
         return Ok(new
@@ -248,151 +234,83 @@ public class MaterialIssueDetailController(IUnitOfWork unit, IMapper mapper) : B
             return BadRequest("ไม่สามารถแก้ไขรายการที่ถูกลบแล้ว");
 
         var oldMaterialItemId = existingIssue.material_item_id;
-        var oldQuantity = existingIssue.quantity;
-        var oldUnitPrice = existingIssue.unit_price;
+        var oldProcurementRecordId = existingIssue.procurement_record_id;
+        var oldDepartmentId = await GetDepartmentId(existingIssue.procurement_record_id, null);
+        var newDepartmentId = await GetDepartmentId(dto.procurement_record_id, dto.department_id);
 
-        // กรณีเปลี่ยนวัสดุ
-        if (oldMaterialItemId != dto.material_item_id)
+        if (dto.quantity <= 0)
+            return BadRequest("จำนวนเบิกต้องมากกว่า 0");
+
+        var availableBalance = await GetLatestBalance(dto.material_item_id, newDepartmentId);
+        if (oldMaterialItemId == dto.material_item_id && oldDepartmentId == newDepartmentId)
         {
-            var oldMaterialItem = await unit.Repository<MaterialItem>()
-                .GetByIdAsync(oldMaterialItemId);
-
-            if (oldMaterialItem == null)
-                return BadRequest("ไม่พบข้อมูลวัสดุเดิม");
-
-            // คืน stock ให้ตัวเก่า
-            oldMaterialItem.quantity_out = (oldMaterialItem.quantity_out ?? 0) - oldQuantity;
-            oldMaterialItem.current_balance = (oldMaterialItem.current_balance ?? 0) + oldQuantity;
-            oldMaterialItem.total_amount =
-                (oldMaterialItem.current_balance ?? 0) * oldUnitPrice;
-            oldMaterialItem.updated_at = DateTime.UtcNow;
-
-            unit.Repository<MaterialItem>().Update(oldMaterialItem);
-
-            var newMaterialItem = await unit.Repository<MaterialItem>()
-                .GetByIdAsync(dto.material_item_id);
-
-            if (newMaterialItem == null)
-                return BadRequest("ไม่พบข้อมูลวัสดุใหม่");
-
-            var newCurrentBalance = newMaterialItem.current_balance ?? 0;
-
-            if (dto.quantity <= 0)
-                return BadRequest("จำนวนเบิกต้องมากกว่า 0");
-
-            if (newCurrentBalance < dto.quantity)
-                return BadRequest($"วัสดุใหม่คงเหลือไม่พอ คงเหลือ {newCurrentBalance}");
-
-            // ตัด stock ตัวใหม่
-            newMaterialItem.quantity_out = (newMaterialItem.quantity_out ?? 0) + dto.quantity;
-            newMaterialItem.current_balance = newCurrentBalance - dto.quantity;
-            newMaterialItem.total_amount =
-                (newMaterialItem.current_balance ?? 0) * (newMaterialItem.unit_price ?? dto.unit_price);
-            newMaterialItem.updated_at = DateTime.UtcNow;
-
-            unit.Repository<MaterialItem>().Update(newMaterialItem);
-
-            mapper.Map(dto, existingIssue);
-
-            existingIssue.unit_price = newMaterialItem.unit_price ?? dto.unit_price;
-            existingIssue.total_amount = existingIssue.quantity * existingIssue.unit_price;
-            existingIssue.updated_at = DateTime.UtcNow;
-            var departmentId = await GetDepartmentId(existingIssue.procurement_record_id, dto.department_id);
-
-            var issueDate = existingIssue.issue_date ?? DateTime.UtcNow;
-            var fiscalYearId = await GetFiscalYearId(issueDate);
-
-            if (!fiscalYearId.HasValue)
-                return BadRequest("ไม่พบปีงบประมาณของวันที่เบิก");
-            var stockCard = new MaterialStockCard
-            {
-                material_item_id = dto.material_item_id,
-                procurement_record_id = existingIssue.procurement_record_id,
-                department_id = departmentId,
-                transaction_date = DateTime.UtcNow,
-                transaction_type = "UPDATE_OUT",
-                issue_detail_id = existingIssue.issue_detail_id,
-
-                quantity_in = 0,
-                quantity_out = dto.quantity,
-                balance_qty = newMaterialItem.current_balance ?? 0,
-                unit_price = existingIssue.unit_price,
-                total_amount = (newMaterialItem.current_balance ?? 0) * existingIssue.unit_price,
-
-                is_active = true,
-                created_at = DateTime.UtcNow
-            };
-
-            unit.Repository<MaterialStockCard>().Add(stockCard);
+            availableBalance += existingIssue.quantity;
         }
-        else
+
+        if (availableBalance < dto.quantity)
+            return BadRequest($"วัสดุคงเหลือไม่พอ คงเหลือ {availableBalance}");
+
+        mapper.Map(dto, existingIssue);
+
+        existingIssue.unit_price = await GetLatestUnitPrice(dto.material_item_id, newDepartmentId, dto.unit_price);
+        existingIssue.total_amount = existingIssue.quantity * existingIssue.unit_price;
+        existingIssue.updated_at = DateTime.UtcNow;
+
+        unit.Repository<MaterialIssueDetail>().Update(existingIssue);
+
+        var issueDate = existingIssue.issue_date ?? DateTime.UtcNow;
+        var fiscalYearId = await GetFiscalYearId(issueDate);
+
+        if (!fiscalYearId.HasValue)
+            return BadRequest("ไม่พบปีงบประมาณของวันที่เบิก");
+
+        var stockCards = await unit.Repository<MaterialStockCard>().ListAllAsync();
+        var outStockCard = stockCards.FirstOrDefault(x =>
+            x.is_active &&
+            x.issue_detail_id == existingIssue.issue_detail_id &&
+            x.transaction_type == "OUT"
+        );
+
+        if (outStockCard == null)
         {
-            var materialItem = await unit.Repository<MaterialItem>()
-                .GetByIdAsync(existingIssue.material_item_id);
-
-            if (materialItem == null)
-                return BadRequest("ไม่พบข้อมูลวัสดุ");
-
-            if (dto.quantity <= 0)
-                return BadRequest("จำนวนเบิกต้องมากกว่า 0");
-
-            var currentBalance = materialItem.current_balance ?? 0;
-
-            var diffQuantity = dto.quantity - oldQuantity;
-
-            // ถ้าเพิ่มจำนวนเบิก ต้องเช็ค stock
-            if (diffQuantity > 0 && currentBalance < diffQuantity)
-                return BadRequest($"วัสดุคงเหลือไม่พอ คงเหลือ {currentBalance}");
-
-            var newBalance = currentBalance - diffQuantity;
-
-            materialItem.quantity_out = (materialItem.quantity_out ?? 0) + diffQuantity;
-            materialItem.current_balance = newBalance;
-            materialItem.total_amount = newBalance * (materialItem.unit_price ?? dto.unit_price);
-            materialItem.updated_at = DateTime.UtcNow;
-
-            unit.Repository<MaterialItem>().Update(materialItem);
-
-            mapper.Map(dto, existingIssue);
-
-            existingIssue.unit_price = materialItem.unit_price ?? dto.unit_price;
-            existingIssue.total_amount = existingIssue.quantity * existingIssue.unit_price;
-            existingIssue.updated_at = DateTime.UtcNow;
-            var departmentId = await GetDepartmentId(existingIssue.procurement_record_id, dto.department_id);
-
-            var issueDate = existingIssue.issue_date ?? DateTime.UtcNow;
-            var fiscalYearId = await GetFiscalYearId(issueDate);
-
-            if (!fiscalYearId.HasValue)
-                return BadRequest("ไม่พบปีงบประมาณของวันที่เบิก");
-
-            var stockCard = new MaterialStockCard
+            outStockCard = new MaterialStockCard
             {
-                material_item_id = existingIssue.material_item_id,
-                procurement_record_id = existingIssue.procurement_record_id,
-                department_id = departmentId,
-                fiscal_year_id = fiscalYearId,
-                transaction_date = issueDate,
-                transaction_type = "UPDATE_OUT",
-                issue_detail_id = existingIssue.issue_detail_id,
-
-                quantity_in = diffQuantity < 0 ? Math.Abs(diffQuantity) : 0,
-                quantity_out = diffQuantity > 0 ? diffQuantity : 0,
-                balance_qty = newBalance,
-                unit_price = existingIssue.unit_price,
-                total_amount = newBalance * existingIssue.unit_price,
-
-                is_active = true,
-                created_at = DateTime.UtcNow
+                transaction_type = "OUT",
+                created_at = DateTime.UtcNow,
+                is_active = true
             };
-
-            unit.Repository<MaterialStockCard>().Add(stockCard);
+            unit.Repository<MaterialStockCard>().Add(outStockCard);
         }
+
+        outStockCard.material_item_id = existingIssue.material_item_id;
+        outStockCard.procurement_record_id = existingIssue.procurement_record_id;
+        outStockCard.department_id = newDepartmentId;
+        outStockCard.transaction_date = issueDate;
+        outStockCard.issue_detail_id = existingIssue.issue_detail_id;
+        outStockCard.fiscal_year_id = fiscalYearId;
+        outStockCard.quantity_in = 0;
+        outStockCard.quantity_out = existingIssue.quantity;
+        outStockCard.balance_qty = 0;
+        outStockCard.unit_price = existingIssue.unit_price;
+        outStockCard.total_amount = 0;
+        outStockCard.updated_at = DateTime.UtcNow;
+
+        if (!await unit.Complete())
+            return BadRequest("Problem updating the material issue detail");
+
+        await RecalculateStockCards(oldMaterialItemId, oldDepartmentId);
+        if (oldMaterialItemId != existingIssue.material_item_id || oldDepartmentId != newDepartmentId)
+        {
+            await RecalculateStockCards(existingIssue.material_item_id, newDepartmentId);
+        }
+
+        await SyncMaterialItemFromStockCards(oldMaterialItemId);
+        await SyncMaterialItemFromStockCards(existingIssue.material_item_id);
 
         if (await unit.Complete())
             return NoContent();
 
-        return BadRequest("Problem updating the material issue detail");
+        return BadRequest("Problem updating stock balances");
     }
 
     [HttpDelete("{id}")]
@@ -405,22 +323,6 @@ public class MaterialIssueDetailController(IUnitOfWork unit, IMapper mapper) : B
 
         if (!issueDetail.is_active)
             return BadRequest("รายการนี้ถูกลบไปแล้ว");
-
-        var materialItem = await unit.Repository<MaterialItem>()
-            .GetByIdAsync(issueDetail.material_item_id);
-
-        if (materialItem == null)
-            return BadRequest("ไม่พบข้อมูลวัสดุ");
-
-        var oldBalance = materialItem.current_balance ?? 0;
-        var newBalance = oldBalance + issueDetail.quantity;
-
-        materialItem.quantity_out = (materialItem.quantity_out ?? 0) - issueDetail.quantity;
-        materialItem.current_balance = newBalance;
-        materialItem.total_amount = newBalance * issueDetail.unit_price;
-        materialItem.updated_at = DateTime.UtcNow;
-
-        unit.Repository<MaterialItem>().Update(materialItem);
 
         issueDetail.is_active = false;
         issueDetail.updated_at = DateTime.UtcNow;
@@ -439,9 +341,9 @@ public class MaterialIssueDetailController(IUnitOfWork unit, IMapper mapper) : B
 
             quantity_in = issueDetail.quantity,
             quantity_out = 0,
-            balance_qty = newBalance,
+            balance_qty = 0,
             unit_price = issueDetail.unit_price,
-            total_amount = newBalance * issueDetail.unit_price,
+            total_amount = 0,
 
             is_active = true,
             created_at = DateTime.UtcNow
@@ -449,10 +351,16 @@ public class MaterialIssueDetailController(IUnitOfWork unit, IMapper mapper) : B
 
         unit.Repository<MaterialStockCard>().Add(cancelStockCard);
 
+        if (!await unit.Complete())
+            return BadRequest("Problem deleting material issue detail");
+
+        await RecalculateStockCards(issueDetail.material_item_id, departmentId);
+        await SyncMaterialItemFromStockCards(issueDetail.material_item_id);
+
         if (await unit.Complete())
             return NoContent();
 
-        return BadRequest("Problem deleting material issue detail");
+        return BadRequest("Problem updating stock balances");
     }
 
     private async Task<int?> GetFiscalYearId(DateTime issueDate)
@@ -478,5 +386,100 @@ public class MaterialIssueDetailController(IUnitOfWork unit, IMapper mapper) : B
             .GetByIdAsync(procurementRecordId.Value);
 
         return procurementRecord?.department_id ?? fallbackDepartmentId;
+    }
+
+    private async Task<decimal> GetLatestBalance(int materialItemId, int? departmentId)
+    {
+        var stockCards = await unit.Repository<MaterialStockCard>().ListAllAsync();
+
+        return stockCards
+            .Where(x =>
+                x.is_active &&
+                x.material_item_id == materialItemId &&
+                x.department_id == departmentId
+            )
+            .OrderByDescending(x => x.transaction_date)
+            .ThenByDescending(x => x.stock_card_id)
+            .Select(x => x.balance_qty)
+            .FirstOrDefault();
+    }
+
+    private async Task<decimal> GetLatestUnitPrice(int materialItemId, int? departmentId, decimal fallbackUnitPrice)
+    {
+        var stockCards = await unit.Repository<MaterialStockCard>().ListAllAsync();
+
+        return stockCards
+            .Where(x =>
+                x.is_active &&
+                x.material_item_id == materialItemId &&
+                x.department_id == departmentId
+            )
+            .OrderByDescending(x => x.transaction_date)
+            .ThenByDescending(x => x.stock_card_id)
+            .Select(x => x.unit_price)
+            .FirstOrDefault() switch
+        {
+            0 => fallbackUnitPrice,
+            var price => price
+        };
+    }
+
+    private async Task RecalculateStockCards(int materialItemId, int? departmentId)
+    {
+        var stockCards = await unit.Repository<MaterialStockCard>().ListAllAsync();
+
+        var itemStockCards = stockCards
+            .Where(x =>
+                x.is_active &&
+                x.material_item_id == materialItemId &&
+                x.department_id == departmentId
+            )
+            .OrderBy(x => x.transaction_date)
+            .ThenBy(x => x.stock_card_id)
+            .ToList();
+
+        decimal runningBalance = 0;
+
+        foreach (var stockCard in itemStockCards)
+        {
+            runningBalance += stockCard.quantity_in - stockCard.quantity_out;
+            stockCard.balance_qty = runningBalance;
+            stockCard.total_amount = runningBalance * stockCard.unit_price;
+            stockCard.updated_at = DateTime.UtcNow;
+            unit.Repository<MaterialStockCard>().Update(stockCard);
+        }
+    }
+
+    private async Task SyncMaterialItemFromStockCards(int materialItemId)
+    {
+        var materialItem = await unit.Repository<MaterialItem>().GetByIdAsync(materialItemId);
+        if (materialItem == null)
+            return;
+
+        var stockCards = await unit.Repository<MaterialStockCard>().ListAllAsync();
+        var itemStockCards = stockCards
+            .Where(x => x.is_active && x.material_item_id == materialItemId)
+            .OrderBy(x => x.transaction_date)
+            .ThenBy(x => x.stock_card_id)
+            .ToList();
+
+        var latestStockCard = itemStockCards.LastOrDefault();
+        var groupedBalances = itemStockCards
+            .GroupBy(x => x.department_id)
+            .Select(g => g
+                .OrderByDescending(x => x.transaction_date)
+                .ThenByDescending(x => x.stock_card_id)
+                .First()
+                .balance_qty)
+            .ToList();
+
+        materialItem.quantity_in = itemStockCards.Sum(x => x.quantity_in);
+        materialItem.quantity_out = itemStockCards.Sum(x => x.quantity_out);
+        materialItem.unit_price = latestStockCard?.unit_price ?? materialItem.unit_price;
+        var currentBalance = groupedBalances.Sum();
+        materialItem.total_amount = currentBalance * (materialItem.unit_price ?? 0);
+        materialItem.updated_at = DateTime.UtcNow;
+
+        unit.Repository<MaterialItem>().Update(materialItem);
     }
 }

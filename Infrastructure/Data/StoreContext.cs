@@ -1,4 +1,3 @@
-﻿using API.Entities;
 using Core.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -51,6 +50,8 @@ public class StoreContext(DbContextOptions options) : IdentityDbContext<AppUser>
     public DbSet<AssetUsageType> assetUsageTypes { get; set; }
     //ประวัติการใช้งาน
     public DbSet<AssetSubItemHistory> assetSubItemHistories { get; set; }
+    // การจำหน่ายครุภัณฑ์ย่อย
+    public DbSet<AssetSubItemDisposal> assetSubItemDisposals { get; set; }
     //รายการสินค้า
     public DbSet<MaterialItem> materialItems { get; set; }
     //เบิกจ่ายวัสดุ
@@ -61,8 +62,10 @@ public class StoreContext(DbContextOptions options) : IdentityDbContext<AppUser>
     public DbSet<MaterialStockCard> materialStockCards { get; set; }
     //ประวัติการเบิกจ่ายวัสดุ
     public DbSet<MaterialWithdrawal> materialWithdrawals { get; set; }
-
-
+    //ประวัติการเปลี่ยนสถานะบันทึกจัดซื้อจัดจ้าง
+    public DbSet<ProcurementRecordStatusHistory> procurementRecordStatusHistories { get; set; }
+    //ตั้งค่าระบบ
+    public DbSet<SystemSetting> system_settings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

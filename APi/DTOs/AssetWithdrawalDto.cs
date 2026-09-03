@@ -12,6 +12,8 @@ namespace APi.DTOs
         public string? purpose { get; set; }
         public string? remark { get; set; }
         public DateTime withdrawal_date { get; set; }
+        public DateTime? end_date { get; set; }
+        public string? end_reason { get; set; }
 
     }
     public class AssetWithdrawalCreateDto
@@ -23,6 +25,8 @@ namespace APi.DTOs
         public string? purpose { get; set; }
         public string? remark { get; set; }
         public DateTime withdrawal_date { get; set; }
+        public DateTime? end_date { get; set; }
+        public string? end_reason { get; set; }
 
     }
 }

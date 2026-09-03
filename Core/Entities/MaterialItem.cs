@@ -26,8 +26,8 @@ namespace Core.Entities
         [Column(TypeName = "decimal(18,2)")]
         public decimal? quantity_out { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal? current_balance { get; set; }
+        //[Column(TypeName = "decimal(18,2)")]
+        //public decimal? current_balance { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal? unit_price { get; set; }

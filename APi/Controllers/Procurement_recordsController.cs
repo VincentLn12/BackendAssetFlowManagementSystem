@@ -3,7 +3,12 @@ using Core.Interfaces.Specifications.Procurement_records;
 
 namespace API.Controllers;
 
-public class Procurement_recordsController(IUnitOfWork unit, IMapper mapper, FileService fileService) : BaseApiController
+public class Procurement_recordsController(
+    IUnitOfWork unit,
+    IMapper mapper,
+    FileService fileService,
+    StoreContext context
+) : BaseApiController
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<Procurement_records>>> GetProcurementRecords([FromQuery] Procurement_recordsSpecParams procurementRecordsParams)
@@ -85,6 +90,108 @@ public class Procurement_recordsController(IUnitOfWork unit, IMapper mapper, Fil
         return BadRequest("Problem updating the procurement record");
     }
 
+    [HttpPut("{id}/status")]
+    public async Task<IActionResult> UpdateProcurementRecordStatus(int id, UpdateProcurementRecordStatusDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.to_status))
+            return BadRequest("กรุณาระบุสถานะใหม่");
+
+        var procurementRecord = await unit.Repository<Procurement_records>().GetByIdAsync(id);
+
+        if (procurementRecord == null)
+            return NotFound("Procurement record not found");
+
+        if (!procurementRecord.is_active)
+            return BadRequest("ไม่สามารถเปลี่ยนสถานะเอกสารที่ถูกลบแล้ว");
+
+        var currentStatus = procurementRecord.status?.Trim() ?? string.Empty;
+        var nextStatus = dto.to_status.Trim();
+
+        if (string.Equals(currentStatus, nextStatus, StringComparison.Ordinal))
+            return BadRequest("สถานะใหม่ต้องไม่ซ้ำกับสถานะปัจจุบัน");
+
+        if (dto.changed_by_staff_id.HasValue)
+        {
+            var staff = await unit.Repository<Staffs>().GetByIdAsync(dto.changed_by_staff_id.Value);
+            if (staff == null || !staff.is_active)
+                return BadRequest("ไม่พบข้อมูลเจ้าหน้าที่ผู้เปลี่ยนสถานะ");
+        }
+
+        await using var transaction = await context.Database.BeginTransactionAsync();
+
+        try
+        {
+            procurementRecord.status = nextStatus;
+            procurementRecord.updated_at = DateTime.UtcNow;
+            procurementRecord.approval_date = nextStatus == "ดำเนินการแล้ว"
+                ? procurementRecord.approval_date ?? DateTime.UtcNow
+                : procurementRecord.approval_date;
+
+            unit.Repository<Procurement_records>().Update(procurementRecord);
+
+            var history = new ProcurementRecordStatusHistory
+            {
+                procurement_record_id = procurementRecord.procurement_record_id,
+                from_status = currentStatus,
+                to_status = nextStatus,
+                changed_at = DateTime.UtcNow,
+                changed_by_staff_id = dto.changed_by_staff_id,
+                remark = dto.remark,
+                is_active = true,
+                created_at = DateTime.UtcNow
+            };
+
+            unit.Repository<ProcurementRecordStatusHistory>().Add(history);
+
+            if (!await unit.Complete())
+            {
+                await transaction.RollbackAsync();
+                return BadRequest("Problem updating procurement record status");
+            }
+
+            await transaction.CommitAsync();
+            return NoContent();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+
+    [HttpGet("{id}/status-history")]
+    public async Task<ActionResult<IReadOnlyList<ProcurementRecordStatusHistoryDto>>> GetProcurementRecordStatusHistory(int id)
+    {
+        var procurementRecord = await unit.Repository<Procurement_records>().GetByIdAsync(id);
+
+        if (procurementRecord == null)
+            return NotFound("Procurement record not found");
+
+        var histories = await context.procurementRecordStatusHistories
+            .AsNoTracking()
+            .Where(x => x.is_active && x.procurement_record_id == id)
+            .Include(x => x.ChangedByStaff!)
+                .ThenInclude(x => x.Prefixes)
+            .OrderByDescending(x => x.changed_at)
+            .ThenByDescending(x => x.status_history_id)
+            .Select(x => new ProcurementRecordStatusHistoryDto
+            {
+                status_history_id = x.status_history_id,
+                procurement_record_id = x.procurement_record_id,
+                from_status = x.from_status,
+                to_status = x.to_status,
+                changed_at = x.changed_at,
+                changed_by_staff_id = x.changed_by_staff_id,
+                changed_by_staff_name = x.ChangedByStaff != null
+                    ? $"{x.ChangedByStaff.Prefixes!.prefix_name}{x.ChangedByStaff.first_name} {x.ChangedByStaff.last_name}"
+                    : null,
+                remark = x.remark
+            })
+            .ToListAsync();
+
+        return Ok(histories);
+    }
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteProcurementRecord(int id)
     {
@@ -108,7 +215,17 @@ public class Procurement_recordsController(IUnitOfWork unit, IMapper mapper, Fil
             if (materialItem == null)
                 return BadRequest($"Material item not found: {detail.material_item_id}");
 
-            var oldBalance = materialItem.current_balance ?? 0;
+            var stockCards = await unit.Repository<MaterialStockCard>().ListAllAsync();
+            var oldBalance = stockCards
+                .Where(x =>
+                    x.is_active &&
+                    x.material_item_id == detail.material_item_id &&
+                    x.department_id == procurementRecord.department_id
+                )
+                .OrderByDescending(x => x.transaction_date)
+                .ThenByDescending(x => x.stock_card_id)
+                .Select(x => x.balance_qty)
+                .FirstOrDefault();
             var newBalance = oldBalance - detail.quantity;
 
             if (newBalance < 0)
@@ -116,7 +233,6 @@ public class Procurement_recordsController(IUnitOfWork unit, IMapper mapper, Fil
 
             // หักยอดใน MaterialItem
             materialItem.quantity_in = (materialItem.quantity_in ?? 0) - detail.quantity;
-            materialItem.current_balance = newBalance;
             materialItem.total_amount = newBalance * (materialItem.unit_price ?? detail.unit_price);
             materialItem.updated_at = DateTime.UtcNow;
 
@@ -128,10 +244,10 @@ public class Procurement_recordsController(IUnitOfWork unit, IMapper mapper, Fil
             unit.Repository<MaterialReceiveDetail>().Update(detail);
 
             // ปิด StockCard IN เดิม
-            var stockCards = await unit.Repository<MaterialStockCard>()
+            var receiveStockCards = await unit.Repository<MaterialStockCard>()
              .ListAsync(new MaterialStockCardByReceiveDetailForDeleteSpec(detail.receive_detail_id));
 
-            foreach (var stockCard in stockCards)
+            foreach (var stockCard in receiveStockCards)
             {
                 stockCard.is_active = false;
                 stockCard.updated_at = DateTime.UtcNow;
@@ -353,11 +469,20 @@ public class Procurement_recordsController(IUnitOfWork unit, IMapper mapper, Fil
             if (materialItem == null)
                 return BadRequest($"Material item not found: {materialReceiveDetail.material_item_id}");
 
-            var oldBalance = materialItem.current_balance ?? 0;
+            var stockCards = await unit.Repository<MaterialStockCard>().ListAllAsync();
+            var oldBalance = stockCards
+                .Where(x =>
+                    x.is_active &&
+                    x.material_item_id == materialReceiveDetail.material_item_id &&
+                    x.department_id == procurement.department_id
+                )
+                .OrderByDescending(x => x.transaction_date)
+                .ThenByDescending(x => x.stock_card_id)
+                .Select(x => x.balance_qty)
+                .FirstOrDefault();
             var newBalance = oldBalance + materialReceiveDetail.quantity;
 
             materialItem.quantity_in = (materialItem.quantity_in ?? 0) + materialReceiveDetail.quantity;
-            materialItem.current_balance = newBalance;
             materialItem.unit_price = materialReceiveDetail.unit_price;
             materialItem.total_amount = newBalance * materialReceiveDetail.unit_price;
             materialItem.updated_at = DateTime.UtcNow;

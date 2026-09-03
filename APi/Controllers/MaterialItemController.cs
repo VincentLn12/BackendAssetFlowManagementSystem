@@ -17,37 +17,42 @@ public class MaterialItemController(IUnitOfWork unit, IMapper mapper) : BaseApiC
 
         var data = mapper.Map<List<MaterialItemDto>>(materialItems);
 
-        if (materialItemParams.FiscalYearId.HasValue && materialItemParams.FiscalYearId.Value > 0)
-        {
-            var stockCards = await unit.Repository<MaterialStockCard>().ListAllAsync();
-
-            var stockCardsByYear = stockCards
-                .Where(x =>
-                    x.is_active &&
+        var stockCards = await unit.Repository<MaterialStockCard>().ListAllAsync();
+        var scopedStockCards = stockCards
+            .Where(x =>
+                x.is_active &&
+                (
+                    !materialItemParams.FiscalYearId.HasValue ||
                     x.fiscal_year_id == materialItemParams.FiscalYearId.Value
                 )
+            )
+            .ToList();
+
+        foreach (var item in data)
+        {
+            var itemStockCards = scopedStockCards
+                .Where(x => x.material_item_id == item.material_item_id)
+                .OrderBy(x => x.transaction_date)
+                .ThenBy(x => x.stock_card_id)
                 .ToList();
 
-            foreach (var item in data)
-            {
-                var itemStockCards = stockCardsByYear
-                    .Where(x => x.material_item_id == item.material_item_id)
-                    .ToList();
-
-                var quantityIn = itemStockCards.Sum(x => x.quantity_in);
-                var quantityOut = itemStockCards.Sum(x => x.quantity_out);
-
-                var lastStockCard = itemStockCards
+            var quantityIn = itemStockCards.Sum(x => x.quantity_in);
+            var quantityOut = itemStockCards.Sum(x => x.quantity_out);
+            var lastStockCard = itemStockCards.LastOrDefault();
+            var currentBalance = itemStockCards
+                .GroupBy(x => x.department_id)
+                .Select(g => g
                     .OrderByDescending(x => x.transaction_date)
                     .ThenByDescending(x => x.stock_card_id)
-                    .FirstOrDefault();
+                    .First()
+                    .balance_qty)
+                .Sum();
 
-                item.quantity_in = quantityIn;
-                item.quantity_out = quantityOut;
-                item.current_balance = lastStockCard?.balance_qty ?? 0;
-                item.unit_price = lastStockCard?.unit_price ?? item.unit_price;
-                item.total_amount = item.current_balance * item.unit_price;
-            }
+            item.quantity_in = quantityIn;
+            item.quantity_out = quantityOut;
+            item.current_balance = currentBalance;
+            item.unit_price = lastStockCard?.unit_price ?? item.unit_price;
+            item.total_amount = item.current_balance * item.unit_price;
         }
 
         return Ok(new Pagination<MaterialItemDto>(
@@ -221,8 +226,6 @@ public class MaterialItemController(IUnitOfWork unit, IMapper mapper) : BaseApiC
             opening_balance = 0,
             quantity_in = 0,
             quantity_out = 0,
-            current_balance = 0,
-
             unit_price = existingMaterialItem.unit_price,
             total_amount = 0,
 

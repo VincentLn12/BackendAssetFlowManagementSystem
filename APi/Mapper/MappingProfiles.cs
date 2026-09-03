@@ -1,4 +1,3 @@
-﻿using API.Entities;
 
 namespace API.Helpers;
 
@@ -159,6 +158,9 @@ public class MappingProfiles : Profile
                 o => o.MapFrom(s => s.materialUnit != null ? s.materialUnit.unit_name : null)
             );
         CreateMap<AssetSubItemCreateDto, AssetSubItem>();
+
+        CreateMap<AssetSubItemDisposal, AssetSubItemDisposalDto>();
+        CreateMap<AssetSubItemDisposalDto, AssetSubItemDisposal>();
 
         //การซ่อมบำรุงครุภัณฑ์
         CreateMap<AssetRepair, AssetRepairDto>()

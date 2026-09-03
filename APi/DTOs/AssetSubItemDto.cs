@@ -1,4 +1,4 @@
-﻿namespace APi.DTOs
+namespace APi.DTOs
 {
     public class AssetSubItemDto
     {
@@ -19,6 +19,7 @@
         public decimal? unit_price { get; set; }
         public decimal? total_price { get; set; }
         public int useful_life_year { get; set; }
+        public string? status { get; set; }
     }
     public class AssetSubItemCreateDto
     {
@@ -35,5 +36,6 @@
         public decimal? unit_price { get; set; }
         public decimal? total_price { get; set; }
         public int useful_life_year { get; set; }
+        public string? status { get; set; }
     }
 }

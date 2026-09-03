@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Core.Entities;
 
@@ -41,4 +41,8 @@ using Core.Entities;
         public decimal? total_price { get; set; }
 
         public int useful_life_year { get; set; }
+
+        [MaxLength(100)]
+        public string? status { get; set; } = "ปกติ";
     }
+
