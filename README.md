@@ -1,39 +1,28 @@
-# 📦 AssetFlow Management System
-> **ระบบบริหารจัดการพัสดุ ครุภัณฑ์ การจัดซื้อจัดจ้าง และคลังวัสดุ (Full-Stack Web Application)**
-> พัฒนาด้วย **.NET 9 Web API** (Backend) และ **Angular 21** (Frontend) ตามสถาปัตยกรรม Clean Architecture และ Modern Component-Driven Development
+# 📦 AssetFlow Management System - Backend API (.NET 9)
+> **ระบบ Backend API สำหรับระบบบริหารจัดการพัสดุ ครุภัณฑ์ การจัดซื้อจัดจ้าง และคลังวัสดุ**
+> พัฒนาด้วย **.NET 9 (ASP.NET Core Web API)**, **Entity Framework Core 9 (SQL Server)**, **ASP.NET Core Identity & JWT**, **AutoMapper**, **Clean Architecture** (Repository & Unit of Work Pattern, Specification Pattern) และ **File Upload Service**
 
 ---
 
 ## 📑 สารบัญ (Table of Contents)
-- [📖 ภาพรวมระบบ (System Overview)](#-ภาพรวมระบบ-system-overview)
-- [🖥️ 1. Backend System (.NET 9 Web API)](#️-1-backend-system-net-9-web-api)
-  - [📁 โครงสร้างโฟลเดอร์แบบละเอียด (Folder Structure)](#-โครงสร้างโฟลเดอร์แบบละเอียด-folder-structure)
-  - [🗄️ สรุปโครงสร้างฐานข้อมูล (Database Schema & Tables)](#️-สรุปโครงสร้างฐานข้อมูล-database-schema--tables)
-  - [📌 การจำแนกประเภทตาราง (Classification of Database Tables)](#-การจำแนกประเภทตาราง-classification-of-database-tables)
-  - [🛠️ เทคโนโลยีที่ใช้ (Backend Tech Stack)](#️-เทคโนโลยีที่ใช้-backend-tech-stack)
-- [💻 2. Frontend System (Angular 21 Web Application)](#-2-frontend-system-angular-21-web-application)
-  - [📁 โครงสร้างโฟลเดอร์แบบละเอียด (Folder Structure)](#-โครงสร้างโฟลเดอร์แบบละเอียด-folder-structure-1)
-  - [🌟 คุณสมบัติและฟังก์ชันการทำงานหลัก (Key Features)](#-คุณสมบัติและฟังก์ชันการทำงานหลัก-key-features)
-  - [🛠️ เทคโนโลยีและไลบรารีที่ใช้ (Frontend Tech Stack & Libraries)](#️-เทคโนโลยีและไลบรารีที่ใช้-frontend-tech-stack--libraries)
-- [🚀 3. ขั้นตอนการติดตั้งและเริ่มใช้งาน (Getting Started)](#-3-ขั้นตอนการติดตั้งและเริ่มใช้งาน-getting-started)
+- [📁 โครงสร้างโฟลเดอร์แบบละเอียด (Folder Structure)](#-โครงสร้างโฟลเดอร์แบบละเอียด-folder-structure)
+- [🗄️ สรุปโครงสร้างฐานข้อมูล (Database Schema & Tables)](#️-สรุปโครงสร้างฐานข้อมูล-database-schema--tables)
+- [📌 การจำแนกประเภทตาราง (Classification of Database Tables)](#-การจำแนกประเภทตาราง-classification-of-database-tables)
+  - [1. 📘 Master File / Master Data (ตารางอ้างอิงหลัก)](#1-📘-master-file--master-data-ตารางอ้างอิงหลัก)
+  - [2. 🔄 Transaction Data (ตารางรายการ / กิจกรรม)](#2-🔄-transaction-data-ตารางรายการ--กิจกรรม)
+  - [3. ⚙️ System & Config Data (ตารางตั้งค่าระบบ)](#3-⚙️-system--config-data-ตารางตั้งค่าระบบ)
+- [🛠️ เทคโนโลยีที่ใช้ (Backend Tech Stack & Libraries)](#️-เทคโนโลยีที่ใช้-backend-tech-stack--libraries)
+- [🚀 ขั้นตอนการติดตั้งและเริ่มใช้งาน (Getting Started)](#-ขั้นตอนการติดตั้งและเริ่มใช้งาน-getting-started)
 
 ---
 
-## 📖 ภาพรวมระบบ (System Overview)
-
-**AssetFlow Management System** คือระบบบริหารจัดการพัสดุและคลังสินค้าครบวงจร ออกแบบมาเพื่อรองรับกระบวนการทำงานของหน่วยงานภาครัฐ สถาบันการศึกษา หรือองค์กรขนาดใหญ่ ครอบคลุมวงจรชีวิตของพัสดุและทรัพย์สิน ตั้งแต่การจัดซื้อจัดจ้าง การรับเข้าคลัง การเบิกจ่ายวัสดุสิ้นเปลือง การควบคุมสต็อกการ์ดแบบ Real-time การถือครองและยืมครุภัณฑ์ การส่งซ่อมบำรุง การตัดจำหน่าย ตลอดจนระบบพอร์ตอลสาธารณะสำหรับสแกน **QR Code** ตรวจสอบครุภัณฑ์
-
----
-
-## 🖥️ 1. Backend System (.NET 9 Web API)
-
-### 📁 โครงสร้างโฟลเดอร์แบบละเอียด (Folder Structure)
+## 📁 โครงสร้างโฟลเดอร์แบบละเอียด (Folder Structure)
 
 ```text
 AssetFlowManagementSystem/
 ├── APi/                                          # โครงสร้างโปรเจกต์หลัก (Web API Project)
 │   ├── Controllers/                               # [API Controllers] รองรับ HTTP Requests (35 Controllers)
-│   │   ├── AccountController.cs                   # ระบบเข้าสู่ระบบ / ลงทะเบียน / โปรไฟล์ผู้ใช้งาน
+│   │   ├── AccountController.cs                   # ระบบเข้าสู่ระบบ / ลงทะเบียน / โปรไฟล์ผู้ใช้งาน (Authentication)
 │   │   ├── AcquisitionMethodController.cs         # จัดการข้อมูลวิธีการได้มาของทรัพย์สิน
 │   │   ├── AssetCategoriesController.cs           # จัดการข้อมูลหมวดหมู่ครุภัณฑ์
 │   │   ├── AssetItemController.cs                 # จัดการข้อมูลครุภัณฑ์หลัก
@@ -179,3 +168,318 @@ AssetFlowManagementSystem/
     ├── Services/                                 # [Infrastructure Services]
     │   └── FileService.cs                        # บริการจัดการอัปโหลด/บันทึก/ลบไฟล์แนบ
     └── Infrastructure.csproj                     # ไฟล์คอนฟิก Infrastructure Class Library
+
+    🗄️ สรุปโครงสร้างฐานข้อมูล (Database Schema & Tables)
+โครงสร้างตารางฐานข้อมูลอ้างอิงจาก Models Class Definition ในระบบ (Entity Framework Core Mapping):
+
+1. AspNetUsers (Model: AppUser)
+ตารางจัดการผู้ใช้งานระบบ (สืบทอดจาก IdentityUser)
+
+Primary Key: Id (string / nvarchar(450))
+Fields: UserName, Email, PasswordHash, PhoneNumber, DisplayName
+Relationships: One-to-Many กับ Staffs และจัดการสิทธิ์ผ่าน AspNetUserRoles
+2. Departments (Model: Departments)
+ตารางข้อมูลแผนก / คณะ / หน่วยงานภายในองค์กร
+
+Primary Key: department_id (int, Identity)
+Fields: department_name (nvarchar(max))
+Relationships: One-to-Many กับ Staffs, Procurement_records, MaterialStockCards
+3. Positions (Model: Positions)
+ตารางตำแหน่งงานของบุคลากร
+
+Primary Key: position_id (int, Identity)
+Fields: position_name (nvarchar(max))
+Relationships: One-to-Many กับ Staffs
+4. Prefixes (Model: Prefixes)
+ตารางคำนำหน้าชื่อ
+
+Primary Key: prefix_id (int, Identity)
+Fields: prefix_name (nvarchar(max)), short_name (nvarchar(max))
+Relationships: One-to-Many กับ Staffs
+5. Staffs (Model: Staffs)
+ตารางทะเบียนข้อมูลบุคลากรและเจ้าหน้าที่
+
+Primary Key: staff_id (int, Identity)
+Foreign Keys:
+prefix_id -> Prefixes.prefix_id
+position_id -> Positions.position_id
+department_id -> Departments.department_id
+Fields: first_name (nvarchar(max)), last_name (nvarchar(max)), email (nvarchar(max)), phone_number (nvarchar(max))
+Relationships: One-to-Many กับ Procurement_records, AssetWithdrawals, AssetRepairs, MaterialIssueDetails, MaterialWithdrawals
+6. Vendors (Model: Vendors)
+ตารางข้อมูลบริษัท / ผู้ขาย / ผู้รับจ้าง / คู่ค้า
+
+Primary Key: vendor_id (int, Identity)
+Fields: vendor_name (nvarchar(max)), tax_id (nvarchar(max)), address (nvarchar(max)), phone_number (nvarchar(max)), contact_name (nvarchar(max))
+Relationships: One-to-Many กับ Procurement_records
+7. Fiscal_years (Model: Fiscal_years)
+ตารางรอบปีงบประมาณ
+
+Primary Key: fiscal_year_id (int, Identity)
+Fields: year_name (int), start_date (datetime), end_date (datetime), is_active (bit)
+Relationships: One-to-Many กับ Procurement_records, MaterialStockCards
+8. Fund_categories (Model: Fund_categories)
+ตารางหมวดหมู่เงินงบประมาณ
+
+Primary Key: fund_category_id (int, Identity)
+Fields: fund_category_name (nvarchar(max))
+Relationships: One-to-Many กับ Procurement_records
+9. Budget_sources (Model: Budget_sources)
+ตารางแหล่งเงินงบประมาณ
+
+Primary Key: budget_source_id (int, Identity)
+Fields: budget_source_name (nvarchar(max))
+Relationships: One-to-Many กับ Procurement_records
+10. Expense_types (Model: Expense_types)
+ตารางประเภทค่าใช้จ่าย
+
+Primary Key: expense_type_id (int, Identity)
+Fields: expense_type_name (nvarchar(max))
+Relationships: One-to-Many กับ Procurement_records
+11. Operation_types (Model: Operation_types)
+ตารางประเภทการดำเนินงานจัดซื้อจัดจ้าง
+
+Primary Key: operation_type_id (int, Identity)
+Fields: operation_type_name (nvarchar(max))
+Relationships: One-to-Many กับ Procurement_records
+12. Projects (Model: Projects)
+ตารางรายชื่อโครงการ / แผนงาน
+
+Primary Key: project_id (int, Identity)
+Fields: project_code (nvarchar(max)), project_name (nvarchar(max)), description (nvarchar(max))
+Relationships: One-to-Many กับ Procurement_records
+13. AssetCategories (Model: AssetCategory)
+ตารางหมวดหมู่ครุภัณฑ์
+
+Primary Key: asset_category_id (int, Identity)
+Fields: category_code (nvarchar(max)), category_name (nvarchar(max))
+Relationships: One-to-Many กับ AssetItems
+14. AcquisitionMethods (Model: AcquisitionMethod)
+ตารางวิธีการได้มาของทรัพย์สิน
+
+Primary Key: acquisition_method_id (int, Identity)
+Fields: method_name (nvarchar(max))
+Relationships: One-to-Many กับ AssetItems
+15. asset_usage_types (Model: AssetUsageType)
+ตารางประเภทการใช้งานครุภัณฑ์
+
+Primary Key: asset_usage_type_id (int, Identity)
+Fields: usage_type_name (nvarchar(max))
+16. MaterialUnits (Model: MaterialUnit)
+ตารางหน่วยนับพรรณนาวัสดุ
+
+Primary Key: unit_id (int, Identity)
+Fields: unit_name (nvarchar(max))
+Relationships: One-to-Many กับ MaterialItems
+17. AssetItems (Model: AssetItem)
+ตารางทะเบียนครุภัณฑ์หลัก
+
+Primary Key: asset_item_id (int, Identity)
+Foreign Keys:
+procurement_record_id -> Procurement_records.procurement_record_id
+asset_category_id -> AssetCategory.asset_category_id
+acquisition_method_id -> AcquisitionMethod.acquisition_method_id
+department_id -> Departments.department_id
+Fields: asset_code (nvarchar(max)), asset_name (nvarchar(max)), price (decimal(18,2)), useful_life (int), received_date (datetime)
+Relationships: One-to-Many กับ AssetSubItems
+18. AssetSubItems (Model: AssetSubItem)
+ตารางทะเบียนครุภัณฑ์ย่อย (Sub-Items / Serial Items)
+
+Primary Key: asset_sub_item_id (int, Identity)
+Foreign Key: asset_item_id -> AssetItem.asset_item_id
+Fields: sub_item_code (nvarchar(max)), serial_number (nvarchar(max)), status (nvarchar(max)), storage_location (nvarchar(max))
+Relationships: One-to-Many กับ AssetSubItemHistories, AssetSubItemDisposals
+19. MaterialItems (Model: MaterialItem)
+ตารางทะเบียนพรรณนาวัสดุสิ้นเปลือง / สินค้าในคลัง
+
+Primary Key: material_item_id (int, Identity)
+Foreign Key: unit_id -> MaterialUnit.unit_id
+Fields: material_code (nvarchar(max)), material_name (nvarchar(max)), unit_price (decimal(18,2)), min_quantity (decimal(18,2)), max_quantity (decimal(18,2))
+Relationships: One-to-Many กับ MaterialReceiveDetails, MaterialIssueDetails, MaterialStockCards
+20. Procurement_records (Model: Procurement_records)
+ตารางเอกสารบันทึกการจัดซื้อจัดจ้างหลัก
+
+Primary Key: procurement_record_id (int, Identity)
+Foreign Keys:
+fiscal_year_id -> Fiscal_years.fiscal_year_id
+operation_type_id -> Operation_types.operation_type_id
+expense_type_id -> Expense_types.expense_type_id
+department_id -> Departments.department_id
+vendor_id -> Vendors.vendor_id
+fund_category_id -> Fund_categories.fund_category_id
+budget_source_id -> Budget_sources.budget_source_id
+staff_id -> Staffs.staff_id
+project_id -> Projects.project_id
+Fields: document_no (nvarchar(max)), document_date (datetime), inspection_date (datetime), total_amount (decimal(18,2)), amount_text (nvarchar(max)), status (nvarchar(max)), reference_no (nvarchar(max)), attachment_file_path (nvarchar(max))
+Relationships: One-to-Many กับ HireDetails, ProcurementRecordStatusHistories, AssetItems, MaterialReceiveDetails, AssetWithdrawals
+21. HireDetails (Model: HireDetail)
+ตารางรายละเอียดสัญญาจัดจ้างทำของ
+
+Primary Key: hire_detail_id (int, Identity)
+Foreign Key: procurement_record_id -> Procurement_records.procurement_record_id
+Fields: contract_no (nvarchar(max)), start_date / end_date (datetime), contract_amount (decimal(18,2)), work_description (nvarchar(max))
+22. ProcurementRecordStatusHistories (Model: ProcurementRecordStatusHistory)
+ตารางบันทึกประวัติการเปลี่ยนสถานะจัดซื้อจัดจ้าง
+
+Primary Key: status_history_id (int, Identity)
+Foreign Key: procurement_record_id -> Procurement_records.procurement_record_id
+Fields: previous_status (nvarchar(max)), new_status (nvarchar(max)), changed_at (datetime), changed_by (nvarchar(max)), remarks (nvarchar(max))
+23. AssetWithdrawals (Model: AssetWithdrawal)
+ตารางประวัติการเบิก / ยืม / ผู้ครอบครองครุภัณฑ์
+
+Primary Key: procurement_withdrawal_id (int, Identity)
+Foreign Keys:
+procurement_record_id -> Procurement_records.procurement_record_id
+staff_id -> Staffs.staff_id
+Fields: withdrawal_document_no (nvarchar(100)), withdrawal_date (date), end_date (date), storage_location (nvarchar(255)), purpose (nvarchar(500))
+Relationships: One-to-Many กับ AssetRepairs
+24. AssetRepairs (Model: AssetRepair)
+ตารางบันทึกการส่งซ่อมแซมและค่าใช้จ่ายซ่อมแซมครุภัณฑ์
+
+Primary Key: asset_repair_id (int, Identity)
+Foreign Keys:
+procurement_withdrawal_id -> AssetWithdrawal.procurement_withdrawal_id
+staff_id -> Staffs.staff_id
+Fields: repair_document_no (nvarchar(max)), repair_date (datetime), problem_description (nvarchar(max)), repair_shop_name (nvarchar(max)), repair_cost (decimal(18,2)), status (nvarchar(max))
+25. AssetSubItemHistories (Model: AssetSubItemHistory)
+ตารางประวัติการเคลื่อนย้าย / การใช้งานครุภัณฑ์ย่อย
+
+Primary Key: sub_item_history_id (int, Identity)
+Foreign Keys:
+asset_sub_item_id -> AssetSubItem.asset_sub_item_id
+staff_id -> Staffs.staff_id
+department_id -> Departments.department_id
+Fields: action_type (nvarchar(max)), action_date (datetime), location (nvarchar(max)), remarks (nvarchar(max))
+26. AssetSubItemDisposals (Model: AssetSubItemDisposal)
+ตารางบันทึกการตัดจำหน่ายครุภัณฑ์ย่อยออกจากบัญชี
+
+Primary Key: sub_item_disposal_id (int, Identity)
+Foreign Key: asset_sub_item_id -> AssetSubItem.asset_sub_item_id
+Fields: disposal_date (datetime), disposal_method (nvarchar(200)), disposal_reason (nvarchar(1000)), approved_by (nvarchar(200)), quantity_disposed (decimal(18,2))
+27. MaterialWithdrawals (Model: MaterialWithdrawal)
+ตารางเอกสารใบขอเบิกพรรณนาวัสดุ
+
+Primary Key: material_withdrawal_id (int, Identity)
+Foreign Keys:
+staff_id -> Staffs.staff_id
+procurement_record_id -> Procurement_records.procurement_record_id
+Fields: withdrawal_document_no (nvarchar(max)), receive_document_no (nvarchar(max)), remark (nvarchar(max))
+28. MaterialReceiveDetails (Model: MaterialReceiveDetail)
+ตารางรายการตรวจรับวัสดุเข้าคลัง
+
+Primary Key: receive_detail_id (int, Identity)
+Foreign Keys:
+procurement_record_id -> Procurement_records.procurement_record_id
+material_item_id -> MaterialItem.material_item_id
+Fields: item_no (int), quantity (decimal(18,2)), unit_price (decimal(18,2)), total_amount (decimal(18,2))
+Relationships: One-to-Many กับ MaterialStockCards
+29. MaterialIssueDetails (Model: MaterialIssueDetail)
+ตารางรายการตัดจ่ายวัสดุออกจากคลัง
+
+Primary Key: issue_detail_id (int, Identity)
+Foreign Keys:
+procurement_record_id -> Procurement_records.procurement_record_id
+material_item_id -> MaterialItem.material_item_id
+staff_id -> Staffs.staff_id
+Fields: issue_date (date), quantity (decimal(18,2)), unit_price (decimal(18,2)), total_amount (decimal(18,2))
+Relationships: One-to-Many กับ MaterialStockCards
+30. MaterialStockCards (Model: MaterialStockCard)
+ตารางสต็อกการ์ดบันทึก Transaction และยอดยกไปคงเหลือ
+
+Primary Key: stock_card_id (int, Identity)
+Foreign Keys:
+material_item_id -> MaterialItem.material_item_id
+receive_detail_id -> MaterialReceiveDetail.receive_detail_id
+issue_detail_id -> MaterialIssueDetail.issue_detail_id
+fiscal_year_id -> Fiscal_years.fiscal_year_id
+department_id -> Departments.department_id
+Fields: transaction_date (date), transaction_type (nvarchar(20)), quantity_in (decimal(18,2)), quantity_out (decimal(18,2)), balance_qty (decimal(18,2)), unit_price (decimal(18,2)), total_amount (decimal(18,2))
+31. SystemSettings (Model: SystemSetting)
+ตารางการตั้งค่าระบบ
+
+Primary Key: id (int, Identity)
+Fields: system_name (nvarchar(max)), system_code (nvarchar(max)), setting_value (nvarchar(max))
+📌 การจำแนกประเภทตาราง (Classification of Database Tables)
+เพื่อความเข้าใจในสถาปัตยกรรมข้อมูล ตารางทั้งหมด 31 ตารางสามารถแบ่งออกตามลักษณะการใช้งานได้ดังนี้:
+
+1. 📘 Master File / Master Data (ตารางอ้างอิงหลัก)
+ข้อมูลอ้างอิงพื้นฐานของระบบที่มีการเปลี่ยนแปลงน้อย ใช้สำหรับอ้างอิงในตารางอื่นๆ:
+
+AspNetUsers (ผู้ใช้งานระบบ)
+Departments (หน่วยงาน/แผนก/คณะ)
+Positions (ตำแหน่งงาน)
+Prefixes (คำนำหน้าชื่อ)
+Staffs (ข้อมูลบุคลากร/เจ้าหน้าที่)
+Vendors (บริษัท/ผู้ขาย/ผู้รับจ้าง/คู่ค้า)
+Fiscal_years (ปีงบประมาณ)
+Fund_categories (หมวดหมู่เงินงบประมาณ)
+Budget_sources (แหล่งเงินงบประมาณ)
+Expense_types (ประเภทค่าใช้จ่าย)
+Operation_types (ประเภทการดำเนินงานจัดซื้อจัดจ้าง)
+Projects (โครงการ/แผนงาน)
+AssetCategories (หมวดหมู่ครุภัณฑ์)
+AcquisitionMethods (วิธีการได้มาของทรัพย์สิน)
+AssetUsageTypes (ประเภทการใช้งานครุภัณฑ์)
+MaterialUnits (หน่วยนับพรรณนาวัสดุ)
+AssetItems (ทะเบียนครุภัณฑ์หลัก)
+AssetSubItems (ทะเบียนครุภัณฑ์ย่อย)
+MaterialItems (ทะเบียนพรรณนาวัสดุสิ้นเปลือง)
+2. 🔄 Transaction Data (ตารางรายการ / กิจกรรม)
+ข้อมูลที่เกิดจากการสมัคร ทำรายการ หรือประมวลผลตามกิจกรรม/ช่วงเวลา:
+
+procurement_records (บันทึกเอกสารการจัดซื้อจัดจ้างหลัก)
+hireDetails (รายละเอียดสัญญาจัดจ้างทำของ)
+procurementRecordStatusHistories (ประวัติการเปลี่ยนสถานะเอกสารจัดซื้อ)
+assetWithdrawals (ประวัติการเบิก/ยืม/ครอบครองครุภัณฑ์)
+assetRepairs (ประวัติการส่งซ่อมแซมและค่าใช้จ่ายครุภัณฑ์)
+assetSubItemHistories (ประวัติการเคลื่อนย้าย/ใช้งานครุภัณฑ์ย่อย)
+assetSubItemDisposals (การตัดจำหน่ายครุภัณฑ์ย่อยออกจากบัญชี)
+materialWithdrawals (เอกสารใบขอเบิกพรรณนาวัสดุ)
+materialReceiveDetails (รายการตรวจรับวัสดุเข้าคลัง)
+materialIssueDetails (รายการตัดจ่ายวัสดุออกจากคลัง)
+materialStockCards (สต็อกการ์ดคลังวัสดุคำนวณยอดยกไปคงเหลือแบบ Real-time)
+3. ⚙️ System & Config Data (ตารางตั้งค่าระบบ)
+ข้อมูลการตั้งค่า ค่าคอนฟิก และสิทธิ์ในระบบ:
+
+system_settings (ตั้งค่าระบบและคอนฟิกพื้นฐาน)
+AspNetRoles / AspNetUserRoles (ตารางจัดการบทบาทและสิทธิ์การใช้งาน)
+🛠️ เทคโนโลยีที่ใช้ (Backend Tech Stack & Libraries)
+หมวดหมู่	เทคโนโลยี / ไลบรารี	เวอร์ชัน	คำอธิบายวัตถุประสงค์การใช้งาน
+Framework	.NET SDK	9.0	Framework หลักในการพัฒนา Web API ประสิทธิภาพสูง
+Web API Engine	ASP.NET Core Web API	9.0	Engine จัดการ Routing, Controller, Dependency Injection
+Database Engine	Microsoft SQL Server	-	ระบบจัดการฐานข้อมูลเชิงสัมพันธ์ (Relational Database)
+ORM / Data Access	Entity Framework Core	9.0.14	Object-Relational Mapper สำหรับเขียน LINQ แทน SQL Command
+EF Core Provider	Microsoft.EntityFrameworkCore.SqlServer	9.0.14	Driver เชื่อมต่อ EF Core กับ SQL Server Database
+EF Core Tools	Microsoft.EntityFrameworkCore.Tools / .Design	9.0.14	เครื่องมือจัดการ CLI Database Migrations
+Identity & Security	Microsoft.AspNetCore.Identity.EntityFrameworkCore	9.0.14	ระบบจัดการบัญชีผู้ใช้ รหัสผ่าน และสิทธิ์บทบาท (RBAC)
+Authentication	System.IdentityModel.Tokens.Jwt	-	สร้างและตรวจสอบความถูกต้องของ JWT Access Tokens
+Object Mapper	AutoMapper	16.1.1	ไลบรารีแปลงข้อมูลอัตโนมัติระหว่าง Domain Entities และ DTOs
+API Documentation	Swashbuckle.AspNetCore (Swagger)	9.0.6	สร้างหน้า Interactive API Documentation & Testing UI
+OpenAPI Spec	Microsoft.AspNetCore.OpenApi	9.0.14	เครื่องมือสร้าง Metadata ตามมาตรฐาน OpenAPI Spec
+Payment Integration	Stripe.net	51.0.0	SDK สำหรับเชื่อมต่อระบบชำระเงินภายนอก
+🚀 ขั้นตอนการติดตั้งและเริ่มใช้งาน (Getting Started)
+Prerequisites (สิ่งที่ต้องมีในเครื่อง)
+.NET 9.0 SDK
+Microsoft SQL Server (LocalDB, SQL Express หรือ SQL Server Instance)
+1. ตรวจสอบ Connection String
+เปิดไฟล์ APi/appsettings.json หรือ APi/appsettings.Development.json และกำหนด Connection String สำหรับเชื่อมต่อ SQL Server:
+
+json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Database=AssetFlowDb;Trusted_Connection=True;TrustServerCertificate=True;"
+  }
+}
+2. อัปเดตโครงสร้างฐานข้อมูล (EF Core Migrations)
+เปิด Terminal ที่โฟลเดอร์หลักของโปรเจกต์ แล้วรันคำสั่ง:
+
+bash
+dotnet ef database update --project Infrastructure --startup-project APi
+3. เริ่มรัน Backend Server
+bash
+dotnet run --project APi
+แอปพลิเคชันจะเปิดทำงานที่ https://localhost:7001 (หรือตามพอร์ตที่ระบบกำหนด) สามารถเข้าใช้งานหน้า Swagger UI ได้ที่:
+
+text
+https://localhost:7001/swagger
+
