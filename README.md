@@ -355,45 +355,50 @@ AssetFlowManagementSystem/
 
 ## 📌 การจำแนกประเภทตาราง (Classification of Database Tables)
 
-### 1) 📘 Master Data
-- AspNetUsers
-- Departments
-- Positions
-- Prefixes
-- Staffs
-- Vendors
-- Fiscal_years
-- Fund_categories
-- Budget_sources
-- Expense_types
-- Operation_types
-- Projects
-- AssetCategories
-- AcquisitionMethods
-- AssetUsageTypes
-- MaterialUnits
-- AssetItems
-- AssetSubItems
-- MaterialItems
+เพื่อความเข้าใจในสถาปัตยกรรมข้อมูล ตารางทั้งหมด 31 ตารางสามารถแบ่งออกตามลักษณะการใช้งานได้ดังนี้:
 
-### 2) 🔄 Transaction Data
-- procurement_records
-- hireDetails
-- procurementRecordStatusHistories
-- assetWithdrawals
-- assetRepairs
-- assetSubItemHistories
-- assetSubItemDisposals
-- materialWithdrawals
-- materialReceiveDetails
-- materialIssueDetails
-- materialStockCards
+### 1) 📘 ตารางข้อมูลหลัก (Master File / Master Data)
+ข้อมูลอ้างอิงพื้นฐานของระบบที่มีการเปลี่ยนแปลงน้อย ใช้สำหรับอ้างอิงในตารางอื่น ๆ:
 
-### 3) ⚙️ System & Config Data
-- system_settings
-- AspNetRoles / AspNetUserRoles
+- AspNetUsers ผู้ใช้งานระบบ
+- Departments หน่วยงาน / แผนก / คณะ
+- Positions ตำแหน่งงาน
+- Prefixes คำนำหน้าชื่อ
+- Staffs ข้อมูลบุคลากร / เจ้าหน้าที่
+- Vendors บริษัท / ผู้ขาย / ผู้รับจ้าง / คู่ค้า
+- Fiscal_years ปีงบประมาณ
+- Fund_categories หมวดหมู่เงินงบประมาณ
+- Budget_sources แหล่งเงินงบประมาณ
+- Expense_types ประเภทค่าใช้จ่าย
+- Operation_types ประเภทการดำเนินงานจัดซื้อจัดจ้าง
+- Projects โครงการ / แผนงาน
+- AssetCategories หมวดหมู่ครุภัณฑ์
+- AcquisitionMethods วิธีการได้มาของทรัพย์สิน
+- AssetUsageTypes ประเภทการใช้งานครุภัณฑ์
+- MaterialUnits หน่วยนับพรรณนาวัสดุ
+- AssetItems ทะเบียนครุภัณฑ์หลัก
+- AssetSubItems ทะเบียนครุภัณฑ์ย่อย
+- MaterialItems ทะเบียนพรรณนาวัสดุสิ้นเปลือง
 
----
+### 2) 🔄 ตารางข้อมูลธุรกรรม (Transaction Data)
+ข้อมูลที่เกิดจากการทำรายการ การบันทึกเหตุการณ์ หรือการประมวลผลตามช่วงเวลา:
+
+- procurement_records บันทึกเอกสารการจัดซื้อจัดจ้างหลัก
+- hireDetails รายละเอียดสัญญาจัดจ้างทำของ
+- procurementRecordStatusHistories ประวัติการเปลี่ยนสถานะเอกสารจัดซื้อ
+- assetWithdrawals ประวัติการเบิก / ยืม / ครอบครองครุภัณฑ์
+- assetRepairs ประวัติการส่งซ่อมแซมและค่าใช้จ่ายครุภัณฑ์
+- assetSubItemHistories ประวัติการเคลื่อนย้าย / ใช้งานครุภัณฑ์ย่อย
+- assetSubItemDisposals การตัดจำหน่ายครุภัณฑ์ย่อยออกจากบัญชี
+- materialWithdrawals เอกสารใบขอเบิกพรรณนาวัสดุ
+- materialReceiveDetails รายการตรวจรับวัสดุเข้าคลัง
+- materialIssueDetails รายการตัดจ่ายวัสดุออกจากคลัง
+- materialStockCards สต็อกการ์ดคลังวัสดุ คำนวณยอดคงเหลือแบบ Real-time
+
+### 3) ⚙️ ตารางข้อมูลระบบและการตั้งค่า (System & Config Data)
+- system_settings การตั้งค่าระบบ
+- AspNetRoles บทบาทผู้ใช้งาน
+- AspNetUserRoles ความสัมพันธ์ระหว่างผู้ใช้งานกับบทบาท
 
 ## 🛠️ เทคโนโลยีที่ใช้ (Backend Tech Stack & Libraries)
 
