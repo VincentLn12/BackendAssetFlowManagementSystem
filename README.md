@@ -2,19 +2,6 @@
 > **ระบบ Backend API สำหรับระบบบริหารจัดการพัสดุ ครุภัณฑ์ การจัดซื้อจัดจ้าง และคลังวัสดุ**
 > พัฒนาด้วย **.NET 9 (ASP.NET Core Web API)**, **Entity Framework Core 9 (SQL Server)**, **ASP.NET Core Identity & JWT**, **AutoMapper**, **Clean Architecture** (Repository & Unit of Work Pattern, Specification Pattern) และ **File Upload Service**
 
----
-
-## 📑 สารบัญ (Table of Contents)
-- [📁 โครงสร้างโฟลเดอร์แบบละเอียด (Folder Structure)](#-โครงสร้างโฟลเดอร์แบบละเอียด-folder-structure)
-- [🗄️ สรุปโครงสร้างฐานข้อมูล (Database Schema & Tables)](#️-สรุปโครงสร้างฐานข้อมูล-database-schema--tables)
-- [📌 การจำแนกประเภทตาราง (Classification of Database Tables)](#-การจำแนกประเภทตาราง-classification-of-database-tables)
-  - [1. 📘 Master File / Master Data (ตารางอ้างอิงหลัก)](#1-📘-master-file--master-data-ตารางอ้างอิงหลัก)
-  - [2. 🔄 Transaction Data (ตารางรายการ / กิจกรรม)](#2-🔄-transaction-data-ตารางรายการ--กิจกรรม)
-  - [3. ⚙️ System & Config Data (ตารางตั้งค่าระบบ)](#3-⚙️-system--config-data-ตารางตั้งค่าระบบ)
-- [🛠️ เทคโนโลยีที่ใช้ (Backend Tech Stack & Libraries)](#️-เทคโนโลยีที่ใช้-backend-tech-stack--libraries)
-- [🚀 ขั้นตอนการติดตั้งและเริ่มใช้งาน (Getting Started)](#-ขั้นตอนการติดตั้งและเริ่มใช้งาน-getting-started)
-
----
 
 ## 📁 โครงสร้างโฟลเดอร์แบบละเอียด (Folder Structure)
 
