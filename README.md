@@ -182,6 +182,7 @@ AssetFlowManagementSystem/
     ├── Services/                                 # [Infrastructure Services]
     │   └── FileService.cs                        # บริการจัดการอัปโหลด/บันทึก/ลบไฟล์แนบ
     └── Infrastructure.csproj                     # ไฟล์คอนฟิก Infrastructure Class Library
+```
 
 ---
 
