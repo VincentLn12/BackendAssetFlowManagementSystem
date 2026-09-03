@@ -165,265 +165,340 @@ AssetFlowManagementSystem/
 
 โครงสร้างตารางฐานข้อมูลอ้างอิงจาก Models Class Definition ในระบบ (Entity Framework Core Mapping)
 
-### 1) AspNetUsers (Model: AppUser)
-ตารางจัดการผู้ใช้งานระบบ (สืบทอดจาก IdentityUser)
+1. AspNetUsers (Model: AppUser)
+ตารางจัดการบัญชีผู้ใช้งานระบบ (สืบทอดจาก ASP.NET Core Identity)
 
-- **Primary Key:** `Id` (string / nvarchar(450))
-- **Fields:** `UserName`, `Email`, `PasswordHash`, `PhoneNumber`, `SecurityStamp`, `DisplayName`
-- **Relationships:** เชื่อมโยงกับตาราง `Staffs` และจัดการสิทธิ์ผ่าน `AspNetUserRoles`
-
-### 2) Departments (Model: Departments)
+Primary Key: Id (string / nvarchar(450))
+Fields:
+UserName (nvarchar(256)) - ชื่อผู้ใช้งานเข้าสู่ระบบ
+Email (nvarchar(256)) - อีเมลผู้ใช้งาน
+PasswordHash (nvarchar(max)) - รหัสผ่านที่ผ่านการเข้ารหัส
+PhoneNumber (nvarchar(max)) - เบอร์โทรศัพท์
+DisplayName (nvarchar(max)) - ชื่อที่ใช้แสดงผลในระบบ
+Relationships: One-to-Many กับ Staffs และเชื่อมกับ AspNetUserRoles เพื่อจัดการสิทธิ์
+2. Departments (Model: Departments)
 ตารางข้อมูลแผนก / คณะ / หน่วยงานภายในองค์กร
 
-- **Primary Key:** `department_id` (int, Identity)
-- **Fields:** `department_name` (nvarchar(max))
-- **Relationships:** One-to-Many กับ `Staffs`, `Procurement_records`, `MaterialStockCards`
-
-### 3) Positions (Model: Positions)
+Primary Key: department_id (int, Identity)
+Fields:
+department_name (nvarchar(max)) - ชื่อแผนก/หน่วยงาน
+Relationships: One-to-Many กับ Staffs, Procurement_records, MaterialStockCards
+3. Positions (Model: Positions)
 ตารางตำแหน่งงานของบุคลากร
 
-- **Primary Key:** `position_id` (int, Identity)
-- **Fields:** `position_name` (nvarchar(max))
-- **Relationships:** One-to-Many กับ `Staffs`
-
-### 4) Prefixes (Model: Prefixes)
+Primary Key: position_id (int, Identity)
+Fields:
+position_name (nvarchar(max)) - ชื่อตำแหน่งงาน (เช่น นักจัดการงานทั่วไป, เจ้าหน้าที่พัสดุ)
+Relationships: One-to-Many กับ Staffs
+4. Prefixes (Model: Prefixes)
 ตารางคำนำหน้าชื่อ
 
-- **Primary Key:** `prefix_id` (int, Identity)
-- **Fields:** `prefix_name` (nvarchar(max)), `short_name` (nvarchar(max))
-- **Relationships:** One-to-Many กับ `Staffs`
+Primary Key: prefix_id (int, Identity)
+Fields:
+prefix_name (nvarchar(max)) - คำนำหน้าชื่อเต็ม (เช่น นาย, นาง, นางสาว, ดอกเตอร์)
+short_name (nvarchar(max)) - คำนำหน้าชื่อย่อ (เช่น ดร.)
+Relationships: One-to-Many กับ Staffs
+5. Staffs (Model: Staffs)
+ตารางทะเบียนข้อมูลบุคลากรและเจ้าหน้าที่
 
-### 5) Staffs (Model: Staffs)
-ตารางทะเบียนข้อมูลบุคลากร / เจ้าหน้าที่
-
-- **Primary Key:** `staff_id` (int, Identity)
-- **Foreign Keys:**
-  - `prefix_id` -> `Prefixes.prefix_id`
-  - `position_id` -> `Positions.position_id`
-  - `department_id` -> `Departments.department_id`
-- **Fields:** `first_name` (nvarchar(max)), `last_name` (nvarchar(max)), `email` (nvarchar(max)), `phone_number` (nvarchar(max))
-- **Relationships:** One-to-Many กับ `Procurement_records`, `AssetWithdrawals`, `AssetRepairs`, `MaterialIssueDetails`, `MaterialWithdrawals`
-
-### 6) Vendors (Model: Vendors)
+Primary Key: staff_id (int, Identity)
+Foreign Keys:
+prefix_id -> Prefixes.prefix_id
+position_id -> Positions.position_id
+department_id -> Departments.department_id
+Fields:
+first_name (nvarchar(max)) - ชื่อจริง
+last_name (nvarchar(max)) - นามสกุล
+email (nvarchar(max)) - อีเมลติดต่อ
+phone_number (nvarchar(max)) - เบอร์โทรศัพท์
+Relationships: One-to-Many กับ Procurement_records, AssetWithdrawals, AssetRepairs, MaterialIssueDetails
+6. Vendors (Model: Vendors)
 ตารางข้อมูลบริษัท / ผู้ขาย / ผู้รับจ้าง / คู่ค้า
 
-- **Primary Key:** `vendor_id` (int, Identity)
-- **Fields:** `vendor_name` (nvarchar(max)), `tax_id` (nvarchar(max)), `address` (nvarchar(max)), `phone_number` (nvarchar(max)), `contact_name` (nvarchar(max))
-- **Relationships:** One-to-Many กับ `Procurement_records`
-
-### 7) Fiscal_years (Model: Fiscal_years)
+Primary Key: vendor_id (int, Identity)
+Fields:
+vendor_name (nvarchar(max)) - ชื่อบริษัท/ร้านค้า
+tax_id (nvarchar(max)) - เลขประจำตัวผู้เสียภาษี
+address (nvarchar(max)) - ที่อยู่บริษัท
+phone_number (nvarchar(max)) - เบอร์โทรศัพท์ติดต่อ
+contact_name (nvarchar(max)) - ชื่อผู้ติดต่อ
+Relationships: One-to-Many กับ Procurement_records
+7. Fiscal_years (Model: Fiscal_years)
 ตารางรอบปีงบประมาณ
 
-- **Primary Key:** `fiscal_year_id` (int, Identity)
-- **Fields:** `year_name` (int), `start_date` (datetime), `end_date` (datetime), `is_active` (bit)
-- **Relationships:** One-to-Many กับ `Procurement_records`, `MaterialStockCards`
-
-### 8) Fund_categories (Model: Fund_categories)
+Primary Key: fiscal_year_id (int, Identity)
+Fields:
+year_name (int) - ปี พ.ศ. งบประมาณ (เช่น 2568)
+start_date (datetime) - วันที่เริ่มต้นปีงบประมาณ
+end_date (datetime) - วันที่สิ้นสุดปีงบประมาณ
+is_active (bit) - สถานะเปิดใช้งานปีปัจจุบัน
+Relationships: One-to-Many กับ Procurement_records, MaterialStockCards
+8. Fund_categories (Model: Fund_categories)
 ตารางหมวดหมู่เงินงบประมาณ
 
-- **Primary Key:** `fund_category_id` (int, Identity)
-- **Fields:** `fund_category_name` (nvarchar(max))
-- **Relationships:** One-to-Many กับ `Procurement_records`
-
-### 9) Budget_sources (Model: Budget_sources)
+Primary Key: fund_category_id (int, Identity)
+Fields:
+fund_category_name (nvarchar(max)) - ชื่อหมวดเงิน (เช่น เงินงบประมาณแผ่นดิน, เงินรายได้)
+Relationships: One-to-Many กับ Procurement_records
+9. Budget_sources (Model: Budget_sources)
 ตารางแหล่งเงินงบประมาณ
 
-- **Primary Key:** `budget_source_id` (int, Identity)
-- **Fields:** `budget_source_name` (nvarchar(max))
-- **Relationships:** One-to-Many กับ `Procurement_records`
-
-### 10) Expense_types (Model: Expense_types)
+Primary Key: budget_source_id (int, Identity)
+Fields:
+budget_source_name (nvarchar(max)) - ชื่อแหล่งงบประมาณที่ได้รับจัดสรร
+Relationships: One-to-Many กับ Procurement_records
+10. Expense_types (Model: Expense_types)
 ตารางประเภทค่าใช้จ่าย
 
-- **Primary Key:** `expense_type_id` (int, Identity)
-- **Fields:** `expense_type_name` (nvarchar(max))
-- **Relationships:** One-to-Many กับ `Procurement_records`
-
-### 11) Operation_types (Model: Operation_types)
+Primary Key: expense_type_id (int, Identity)
+Fields:
+expense_type_name (nvarchar(max)) - ชื่อประเภทค่าใช้จ่าย (เช่น งบตอบแทน, งบวัสดุ, งบลงทุน)
+Relationships: One-to-Many กับ Procurement_records
+11. Operation_types (Model: Operation_types)
 ตารางประเภทการดำเนินงานจัดซื้อจัดจ้าง
 
-- **Primary Key:** `operation_type_id` (int, Identity)
-- **Fields:** `operation_type_name` (nvarchar(max))
-- **Relationships:** One-to-Many กับ `Procurement_records`
-
-### 12) Projects (Model: Projects)
+Primary Key: operation_type_id (int, Identity)
+Fields:
+operation_type_name (nvarchar(max)) - วิธีการจัดซื้อ (เช่น เฉพาะเจาะจง, e-Bidding, คัดเลือก)
+Relationships: One-to-Many กับ Procurement_records
+12. Projects (Model: Projects)
 ตารางรายชื่อโครงการ / แผนงาน
 
-- **Primary Key:** `project_id` (int, Identity)
-- **Fields:** `project_name` (nvarchar(max)), `project_code` (nvarchar(max)), `description` (nvarchar(max))
-- **Relationships:** One-to-Many กับ `Procurement_records`
-
-### 13) AssetCategory (Model: AssetCategory)
+Primary Key: project_id (int, Identity)
+Fields:
+project_code (nvarchar(max)) - รหัสโครงการ
+project_name (nvarchar(max)) - ชื่อโครงการ
+description (nvarchar(max)) - รายละเอียดโครงการ
+Relationships: One-to-Many กับ Procurement_records
+13. AssetCategories (Model: AssetCategory)
 ตารางหมวดหมู่ครุภัณฑ์
 
-- **Primary Key:** `asset_category_id` (int, Identity)
-- **Fields:** `category_name` (nvarchar(max)), `category_code` (nvarchar(max))
-- **Relationships:** One-to-Many กับ `AssetItems`
-
-### 14) AcquisitionMethod (Model: AcquisitionMethod)
+Primary Key: asset_category_id (int, Identity)
+Fields:
+category_code (nvarchar(max)) - รหัสหมวดหมู่ครุภัณฑ์
+category_name (nvarchar(max)) - ชื่อหมวดหมู่ (เช่น ครุภัณฑ์สำนักงาน, ครุภัณฑ์คอมพิวเตอร์)
+Relationships: One-to-Many กับ AssetItems
+14. AcquisitionMethods (Model: AcquisitionMethod)
 ตารางวิธีการได้มาของทรัพย์สิน
 
-- **Primary Key:** `acquisition_method_id` (int, Identity)
-- **Fields:** `method_name` (nvarchar(max))
-- **Relationships:** One-to-Many กับ `AssetItems`
-
-### 15) asset_usage_types (Model: AssetUsageType)
+Primary Key: acquisition_method_id (int, Identity)
+Fields:
+method_name (nvarchar(max)) - วิธีการได้มา (เช่น จัดซื้อ, ตกลงราคา, รับบริจาค)
+Relationships: One-to-Many กับ AssetItems
+15. asset_usage_types (Model: AssetUsageType)
 ตารางประเภทการใช้งานครุภัณฑ์
 
-- **Primary Key:** `asset_usage_type_id` (int, Identity)
-- **Fields:** `usage_type_name` (nvarchar(max))
-
-### 16) MaterialUnit (Model: MaterialUnit)
+Primary Key: asset_usage_type_id (int, Identity)
+Fields:
+usage_type_name (nvarchar(max)) - ลักษณะการใช้งาน (เช่น ส่วนกลาง, ประจำตัวบุคคล)
+16. MaterialUnits (Model: MaterialUnit)
 ตารางหน่วยนับพรรณนาวัสดุ
 
-- **Primary Key:** `unit_id` (int, Identity)
-- **Fields:** `unit_name` (nvarchar(max))
-- **Relationships:** One-to-Many กับ `MaterialItems`
-
-### 17) AssetItem (Model: AssetItem)
+Primary Key: unit_id (int, Identity)
+Fields:
+unit_name (nvarchar(max)) - ชื่อหน่วยนับ (เช่น ชิ้น, อัน, กล่อง, รีม, ชุด)
+Relationships: One-to-Many กับ MaterialItems
+17. AssetItems (Model: AssetItem)
 ตารางทะเบียนครุภัณฑ์หลัก
 
-- **Primary Key:** `asset_item_id` (int, Identity)
-- **Foreign Keys:**
-  - `procurement_record_id` -> `Procurement_records.procurement_record_id`
-  - `asset_category_id` -> `AssetCategory.asset_category_id`
-  - `acquisition_method_id` -> `AcquisitionMethod.acquisition_method_id`
-  - `department_id` -> `Departments.department_id`
-- **Fields:** `asset_code` (nvarchar(max)), `asset_name` (nvarchar(max)), `price` (decimal(18,2)), `useful_life` (int), `received_date` (datetime)
-- **Relationships:** One-to-Many กับ `AssetSubItems`
+Primary Key: asset_item_id (int, Identity)
+Foreign Keys:
+procurement_record_id -> Procurement_records.procurement_record_id
+asset_category_id -> AssetCategory.asset_category_id
+acquisition_method_id -> AcquisitionMethod.acquisition_method_id
+department_id -> Departments.department_id
+Fields:
+asset_code (nvarchar(max)) - รหัสครุภัณฑ์หลัก
+asset_name (nvarchar(max)) - ชื่อรายการครุภัณฑ์
+price (decimal(18,2)) - ราคาจัดซื้อต่อหน่วย
+useful_life (int) - อายุการใช้งาน (ปี)
+received_date (datetime) - วันที่รับมอบครุภัณฑ์
+Relationships: One-to-Many กับ AssetSubItems
+18. AssetSubItems (Model: AssetSubItem)
+ตารางทะเบียนครุภัณฑ์ย่อย (รายชิ้น / Serial Number)
 
-### 18) AssetSubItem (Model: AssetSubItem)
-ตารางทะเบียนครุภัณฑ์ย่อย (Sub-Items / Serial Items)
-
-- **Primary Key:** `asset_sub_item_id` (int, Identity)
-- **Foreign Key:** `asset_item_id` -> `AssetItem.asset_item_id`
-- **Fields:** `sub_item_code` (nvarchar(max)), `serial_number` (nvarchar(max)), `status` (nvarchar(max)), `storage_location` (nvarchar(max))
-- **Relationships:** One-to-Many กับ `AssetSubItemHistories`, `AssetSubItemDisposals`
-
-### 19) MaterialItem (Model: MaterialItem)
+Primary Key: asset_sub_item_id (int, Identity)
+Foreign Key: asset_item_id -> AssetItem.asset_item_id
+Fields:
+sub_item_code (nvarchar(max)) - รหัสครุภัณฑ์ย่อยประจำชิ้น
+serial_number (nvarchar(max)) - หมายเลข Serial Number
+status (nvarchar(max)) - สถานะครุภัณฑ์ (ใช้งานอยู่, ชำรุด, ตัดจำหน่าย)
+storage_location (nvarchar(max)) - สถานที่จัดเก็บ/ห้องที่วาง
+Relationships: One-to-Many กับ AssetSubItemHistories, AssetSubItemDisposals
+19. MaterialItems (Model: MaterialItem)
 ตารางทะเบียนพรรณนาวัสดุสิ้นเปลือง / สินค้าในคลัง
 
-- **Primary Key:** `material_item_id` (int, Identity)
-- **Foreign Key:** `unit_id` -> `MaterialUnit.unit_id`
-- **Fields:** `material_code` (nvarchar(max)), `material_name` (nvarchar(max)), `unit_price` (decimal(18,2)), `min_quantity` (decimal(18,2)), `max_quantity` (decimal(18,2))
-- **Relationships:** One-to-Many กับ `MaterialReceiveDetails`, `MaterialIssueDetails`, `MaterialStockCards`
+Primary Key: material_item_id (int, Identity)
+Foreign Key: unit_id -> MaterialUnit.unit_id
+Fields:
+material_code (nvarchar(max)) - รหัสวัสดุ
+material_name (nvarchar(max)) - ชื่อวัสดุสิ้นเปลือง
+unit_price (decimal(18,2)) - ราคาประมาณการต่อหน่วย
+min_quantity (decimal(18,2)) - จุดสั่งซื้อขั้นต่ำ (Safety Stock)
+max_quantity (decimal(18,2)) - ปริมาณกักเก็บสูงสุด
+Relationships: One-to-Many กับ MaterialReceiveDetails, MaterialIssueDetails, MaterialStockCards
+20. Procurement_records (Model: Procurement_records)
+ตารางบันทึกเอกสารการจัดซื้อจัดจ้างหลัก
 
-### 20) Procurement_records (Model: Procurement_records)
-ตารางเอกสารบันทึกการจัดซื้อจัดจ้างหลัก
-
-- **Primary Key:** `procurement_record_id` (int, Identity)
-- **Foreign Keys:**
-  - `fiscal_year_id` -> `Fiscal_years.fiscal_year_id`
-  - `operation_type_id` -> `Operation_types.operation_type_id`
-  - `expense_type_id` -> `Expense_types.expense_type_id`
-  - `department_id` -> `Departments.department_id`
-  - `vendor_id` -> `Vendors.vendor_id`
-  - `fund_category_id` -> `Fund_categories.fund_category_id`
-  - `budget_source_id` -> `Budget_sources.budget_source_id`
-  - `staff_id` -> `Staffs.staff_id`
-  - `project_id` -> `Projects.project_id`
-- **Fields:** `document_no` (nvarchar(max)), `document_date` (datetime), `inspection_date` (datetime), `total_amount` (decimal(18,2)), `amount_text` (nvarchar(max)), `status` (nvarchar(max)), `reference_no` (nvarchar(max)), `attachment_file_path` (nvarchar(max))
-- **Relationships:** One-to-Many กับ `HireDetails`, `ProcurementRecordStatusHistories`, `AssetItems`, `MaterialReceiveDetails`, `AssetWithdrawals`
-
-### 21) HireDetail (Model: HireDetail)
+Primary Key: procurement_record_id (int, Identity)
+Foreign Keys:
+fiscal_year_id -> Fiscal_years.fiscal_year_id
+operation_type_id -> Operation_types.operation_type_id
+expense_type_id -> Expense_types.expense_type_id
+department_id -> Departments.department_id
+vendor_id -> Vendors.vendor_id
+fund_category_id -> Fund_categories.fund_category_id
+budget_source_id -> Budget_sources.budget_source_id
+staff_id -> Staffs.staff_id
+project_id -> Projects.project_id
+Fields:
+document_no (nvarchar(max)) - เลขที่เอกสารการจัดซื้อ
+document_date (datetime) - วันที่ในเอกสาร
+inspection_date (datetime) - วันที่ตรวจรับงาน
+total_amount (decimal(18,2)) - ยอดเงินรวมจัดซื้อ
+amount_text (nvarchar(max)) - จำนวนเงินรวมตัวอักษร
+status (nvarchar(max)) - สถานะเอกสาร (เช่น อนุมัติ, รอตรวจรับ)
+reference_no (nvarchar(max)) - เลขที่อ้างอิง
+attachment_file_path (nvarchar(max)) - พาธไฟล์เอกสารแนบ PDF
+Relationships: One-to-Many กับ HireDetails, ProcurementRecordStatusHistories, AssetItems, MaterialReceiveDetails
+21. HireDetails (Model: HireDetail)
 ตารางรายละเอียดสัญญาจัดจ้างทำของ
 
-- **Primary Key:** `hire_detail_id` (int, Identity)
-- **Foreign Key:** `procurement_record_id` -> `Procurement_records.procurement_record_id`
-- **Fields:** `contract_no` (nvarchar(max)), `start_date` (datetime), `end_date` (datetime), `contract_amount` (decimal(18,2)), `work_description` (nvarchar(max))
+Primary Key: hire_detail_id (int, Identity)
+Foreign Key: procurement_record_id -> Procurement_records.procurement_record_id
+Fields:
+contract_no (nvarchar(max)) - เลขที่สัญญาจ้าง
+start_date / end_date (datetime) - ระยะเวลาตามสัญญา
+contract_amount (decimal(18,2)) - มูลค่าสัญญาจ้าง
+work_description (nvarchar(max)) - ขอบเขตงานจ้าง (TOR)
+22. ProcurementRecordStatusHistories (Model: ProcurementRecordStatusHistory)
+ตารางบันทึกประวัติการเปลี่ยนสถานะเอกสารจัดซื้อจัดจ้าง
 
-### 22) ProcurementRecordStatusHistory (Model: ProcurementRecordStatusHistory)
-ตารางบันทึกประวัติการเปลี่ยนสถานะจัดซื้อจัดจ้าง
-
-- **Primary Key:** `status_history_id` (int, Identity)
-- **Foreign Key:** `procurement_record_id` -> `Procurement_records.procurement_record_id`
-- **Fields:** `previous_status` (nvarchar(max)), `new_status` (nvarchar(max)), `changed_at` (datetime), `changed_by` (nvarchar(max)), `remarks` (nvarchar(max))
-
-### 23) AssetWithdrawal (Model: AssetWithdrawal)
+Primary Key: status_history_id (int, Identity)
+Foreign Key: procurement_record_id -> Procurement_records.procurement_record_id
+Fields:
+previous_status (nvarchar(max)) - สถานะก่อนหน้า
+new_status (nvarchar(max)) - สถานะใหม่ที่อัปเดต
+changed_at (datetime) - วันเวลาที่อัปเดตสถานะ
+changed_by (nvarchar(max)) - ผู้ทำการเปลี่ยนสถานะ
+remarks (nvarchar(max)) - หมายเหตุการเปลี่ยนสถานะ
+23. AssetWithdrawals (Model: AssetWithdrawal)
 ตารางประวัติการเบิก / ยืม / ผู้ครอบครองครุภัณฑ์
 
-- **Primary Key:** `procurement_withdrawal_id` (int, Identity)
-- **Foreign Keys:**
-  - `procurement_record_id` -> `Procurement_records.procurement_record_id`
-  - `staff_id` -> `Staffs.staff_id`
-- **Fields:** `withdrawal_document_no` (nvarchar(100)), `withdrawal_date` (date), `end_date` (date), `end_reason` (nvarchar(50)), `storage_location` (nvarchar(255)), `purpose` (nvarchar(500)), `remark` (nvarchar(max))
-- **Relationships:** One-to-Many กับ `AssetRepairs`
-
-### 24) AssetRepair (Model: AssetRepair)
+Primary Key: procurement_withdrawal_id (int, Identity)
+Foreign Keys:
+procurement_record_id -> Procurement_records.procurement_record_id
+staff_id -> Staffs.staff_id
+Fields:
+withdrawal_document_no (nvarchar(100)) - เลขที่ใบเบิก/ยืมครุภัณฑ์
+withdrawal_date (date) - วันที่เบิกใช้งาน
+end_date (date) - วันที่กำหนดคืน/สิ้นสุดการยืม
+storage_location (nvarchar(255)) - สถานที่จัดวางครุภัณฑ์
+purpose (nvarchar(500)) - วัตถุประสงค์ในการเบิกใช้งาน
+Relationships: One-to-Many กับ AssetRepairs
+24. AssetRepairs (Model: AssetRepair)
 ตารางบันทึกการส่งซ่อมแซมและค่าใช้จ่ายซ่อมแซมครุภัณฑ์
 
-- **Primary Key:** `asset_repair_id` (int, Identity)
-- **Foreign Keys:**
-  - `procurement_withdrawal_id` -> `AssetWithdrawal.procurement_withdrawal_id`
-  - `staff_id` -> `Staffs.staff_id`
-- **Fields:** `repair_document_no` (nvarchar(max)), `repair_date` (datetime), `problem_description` (nvarchar(max)), `repair_description` (nvarchar(max)), `repair_shop_name` (nvarchar(max)), `repair_cost` (decimal(18,2)), `status` (nvarchar(max))
-
-### 25) AssetSubItemHistory (Model: AssetSubItemHistory)
+Primary Key: asset_repair_id (int, Identity)
+Foreign Keys:
+procurement_withdrawal_id -> AssetWithdrawal.procurement_withdrawal_id
+staff_id -> Staffs.staff_id
+Fields:
+repair_document_no (nvarchar(max)) - เลขที่ใบแจ้งซ่อม
+repair_date (datetime) - วันที่ส่งซ่อม
+problem_description (nvarchar(max)) - รายละเอียดอาการชำรุด
+repair_shop_name (nvarchar(max)) - ชื่อร้าน/บริษัทที่ส่งซ่อม
+repair_cost (decimal(18,2)) - ค่าใช้จ่ายในการซ่อมแซม
+status (nvarchar(max)) - สถานะการซ่อม (กำลังซ่อม, ซ่อมเสร็จแล้ว)
+25. AssetSubItemHistories (Model: AssetSubItemHistory)
 ตารางประวัติการเคลื่อนย้าย / การใช้งานครุภัณฑ์ย่อย
 
-- **Primary Key:** `sub_item_history_id` (int, Identity)
-- **Foreign Keys:**
-  - `asset_sub_item_id` -> `AssetSubItem.asset_sub_item_id`
-  - `staff_id` -> `Staffs.staff_id`
-  - `department_id` -> `Departments.department_id`
-- **Fields:** `action_type` (nvarchar(max)), `action_date` (datetime), `location` (nvarchar(max)), `remarks` (nvarchar(max))
-
-### 26) AssetSubItemDisposal (Model: AssetSubItemDisposal)
+Primary Key: sub_item_history_id (int, Identity)
+Foreign Keys:
+asset_sub_item_id -> AssetSubItem.asset_sub_item_id
+staff_id -> Staffs.staff_id
+department_id -> Departments.department_id
+Fields:
+action_type (nvarchar(max)) - กิจกรรม (โอนย้าย, ย้ายห้อง, เปลี่ยนผู้ถือครอง)
+action_date (datetime) - วันเวลาที่เกิดกิจกรรม
+location (nvarchar(max)) - สถานที่ใหม่
+remarks (nvarchar(max)) - หมายเหตุเพิ่มเติม
+26. AssetSubItemDisposals (Model: AssetSubItemDisposal)
 ตารางบันทึกการตัดจำหน่ายครุภัณฑ์ย่อยออกจากบัญชี
 
-- **Primary Key:** `sub_item_disposal_id` (int, Identity)
-- **Foreign Key:** `asset_sub_item_id` -> `AssetSubItem.asset_sub_item_id`
-- **Fields:** `disposal_date` (datetime), `disposal_method` (nvarchar(200)), `disposal_reason` (nvarchar(1000)), `approved_by` (nvarchar(200)), `quantity_disposed` (decimal(18,2)), `notes` (nvarchar(1000))
-
-### 27) MaterialWithdrawal (Model: MaterialWithdrawal)
+Primary Key: sub_item_disposal_id (int, Identity)
+Foreign Key: asset_sub_item_id -> AssetSubItem.asset_sub_item_id
+Fields:
+disposal_date (datetime) - วันที่อนุมัติตัดจำหน่าย
+disposal_method (nvarchar(200)) - วิธีการจำหน่าย (ขายทอดตลาด, บริจาค, แทงจำหน่าย)
+disposal_reason (nvarchar(1000)) - เหตุผลในการตัดจำหน่าย
+approved_by (nvarchar(200)) - ผู้อนุมัติการตัดจำหน่าย
+quantity_disposed (decimal(18,2)) - จำนวนที่ตัดจำหน่าย
+27. MaterialWithdrawals (Model: MaterialWithdrawal)
 ตารางเอกสารใบขอเบิกพรรณนาวัสดุ
 
-- **Primary Key:** `material_withdrawal_id` (int, Identity)
-- **Foreign Keys:**
-  - `staff_id` -> `Staffs.staff_id`
-  - `procurement_record_id` -> `Procurement_records.procurement_record_id`
-- **Fields:** `material_receive_id` (nvarchar(max)), `receive_document_no` (nvarchar(max)), `withdrawal_document_no` (nvarchar(max)), `remark` (nvarchar(max))
-
-### 28) MaterialReceiveDetail (Model: MaterialReceiveDetail)
+Primary Key: material_withdrawal_id (int, Identity)
+Foreign Keys:
+staff_id -> Staffs.staff_id
+procurement_record_id -> Procurement_records.procurement_record_id
+Fields:
+withdrawal_document_no (nvarchar(max)) - เลขที่ใบขอเบิกวัสดุ
+receive_document_no (nvarchar(max)) - เลขที่เอกสารรับเข้าอ้างอิง
+remark (nvarchar(max)) - หมายเหตุการเบิก
+28. MaterialReceiveDetails (Model: MaterialReceiveDetail)
 ตารางรายการตรวจรับวัสดุเข้าคลัง
 
-- **Primary Key:** `receive_detail_id` (int, Identity)
-- **Foreign Keys:**
-  - `procurement_record_id` -> `Procurement_records.procurement_record_id`
-  - `material_item_id` -> `MaterialItem.material_item_id`
-- **Fields:** `item_no` (int), `quantity` (decimal(18,2)), `unit_price` (decimal(18,2)), `total_amount` (decimal(18,2)), `operation_reason` (nvarchar(max))
-- **Relationships:** One-to-Many กับ `MaterialStockCards`
-
-### 29) MaterialIssueDetail (Model: MaterialIssueDetail)
+Primary Key: receive_detail_id (int, Identity)
+Foreign Keys:
+procurement_record_id -> Procurement_records.procurement_record_id
+material_item_id -> MaterialItem.material_item_id
+Fields:
+item_no (int) - ลำดับรายการในใบตรวจรับ
+quantity (decimal(18,2)) - จำนวนที่ตรวจรับเข้าคลัง
+unit_price (decimal(18,2)) - ราคาต่อหน่วยที่สั่งซื้อ
+total_amount (decimal(18,2)) - ราคารวมรายการตรวจรับ
+Relationships: One-to-Many กับ MaterialStockCards
+29. MaterialIssueDetails (Model: MaterialIssueDetail)
 ตารางรายการตัดจ่ายวัสดุออกจากคลัง
 
-- **Primary Key:** `issue_detail_id` (int, Identity)
-- **Foreign Keys:**
-  - `procurement_record_id` -> `Procurement_records.procurement_record_id`
-  - `material_item_id` -> `MaterialItem.material_item_id`
-  - `staff_id` -> `Staffs.staff_id`
-- **Fields:** `issue_date` (date), `quantity` (decimal(18,2)), `unit_price` (decimal(18,2)), `total_amount` (decimal(18,2)), `remark` (nvarchar(max))
-- **Relationships:** One-to-Many กับ `MaterialStockCards`
+Primary Key: issue_detail_id (int, Identity)
+Foreign Keys:
+procurement_record_id -> Procurement_records.procurement_record_id
+material_item_id -> MaterialItem.material_item_id
+staff_id -> Staffs.staff_id (ผู้ขอเบิก)
+Fields:
+issue_date (date) - วันที่จ่ายวัสดุออกจากคลัง
+quantity (decimal(18,2)) - จำนวนที่ตัดจ่าย
+unit_price (decimal(18,2)) - ราคาต่อหน่วยที่ตัดจ่าย
+total_amount (decimal(18,2)) - มูลค่ารวมที่ตัดจ่าย
+Relationships: One-to-Many กับ MaterialStockCards
+30. MaterialStockCards (Model: MaterialStockCard)
+ตารางสต็อกการ์ดบันทึก Transaction และยอดยกไปคงเหลือของวัสดุ
 
-### 30) MaterialStockCard (Model: MaterialStockCard)
-ตารางสต็อกการ์ดบันทึก Transaction และยอดยกไปคงเหลือ
+Primary Key: stock_card_id (int, Identity)
+Foreign Keys:
+material_item_id -> MaterialItem.material_item_id
+receive_detail_id -> MaterialReceiveDetail.receive_detail_id
+issue_detail_id -> MaterialIssueDetail.issue_detail_id
+fiscal_year_id -> Fiscal_years.fiscal_year_id
+department_id -> Departments.department_id
+Fields:
+transaction_date (date) - วันที่เกิดรายการเคลื่อนไหว
+transaction_type (nvarchar(20)) - ประเภทรายการ (RECEIVE / ISSUE)
+reference_document_no (nvarchar(100)) - เลขที่เอกสารอ้างอิง
+quantity_in (decimal(18,2)) - จำนวนที่รับเข้า
+quantity_out (decimal(18,2)) - จำนวนที่จ่ายออก
+balance_qty (decimal(18,2)) - ยอดคงเหลือสุทธิหลังเกิด Transaction
+unit_price (decimal(18,2)) - ราคาต่อหน่วย
+total_amount (decimal(18,2)) - มูลค่ารวมของ Transaction
+31. SystemSettings (Model: SystemSetting)
+ตารางการตั้งค่าคอนฟิกพื้นฐานของระบบ
 
-- **Primary Key:** `stock_card_id` (int, Identity)
-- **Foreign Keys:**
-  - `material_item_id` -> `MaterialItem.material_item_id`
-  - `receive_detail_id` -> `MaterialReceiveDetail.receive_detail_id`
-  - `issue_detail_id` -> `MaterialIssueDetail.issue_detail_id`
-  - `fiscal_year_id` -> `Fiscal_years.fiscal_year_id`
-  - `department_id` -> `Departments.department_id`
-- **Fields:** `transaction_date` (date), `transaction_type` (nvarchar(20)), `reference_document_no` (nvarchar(100)), `quantity_in` (decimal(18,2)), `quantity_out` (decimal(18,2)), `balance_qty` (decimal(18,2)), `unit_price` (decimal(18,2)), `total_amount` (decimal(18,2))
-
-### 31) SystemSetting (Model: SystemSetting)
-ตารางการตั้งค่าระบบ
-
-- **Primary Key:** `id` (int, Identity)
-- **Fields:** `system_name` (nvarchar(max)), `system_code` (nvarchar(max)), `setting_value` (nvarchar(max))
-
----
+Primary Key: id (int, Identity)
+Fields:
+system_name (nvarchar(max)) - ชื่อระบบที่แสดงผล
+system_code (nvarchar(max)) - รหัสอ้างอิงการตั้งค่า
+setting_value (nvarchar(max)) - ค่าการตั้งค่า (Value)
 
 ## 📌 การจำแนกประเภทตาราง (Classification of Database Tables)
 
