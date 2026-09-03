@@ -1,472 +1,448 @@
 # 📦 AssetFlow Management System - Backend API (.NET 9)
-> **ระบบ Backend API สำหรับระบบบริหารจัดการพัสดุ ครุภัณฑ์ การจัดซื้อจัดจ้าง และคลังวัสดุ**
-> พัฒนาด้วย **.NET 9 (ASP.NET Core Web API)**, **Entity Framework Core 9 (SQL Server)**, **ASP.NET Core Identity & JWT**, **AutoMapper**, **Clean Architecture** (Repository & Unit of Work Pattern, Specification Pattern) และ **File Upload Service**
 
+> **ระบบ Backend API สำหรับระบบบริหารจัดการพัสดุ ครุภัณฑ์ การจัดซื้อจัดจ้าง และคลังวัสดุ**  
+> พัฒนาด้วย **.NET 9 (ASP.NET Core Web API)**, **Entity Framework Core 9 (SQL Server)**,  
+> **ASP.NET Core Identity & JWT**, **AutoMapper**, **Clean Architecture**  
+> (Repository & Unit of Work Pattern, Specification Pattern) และ **File Upload Service**
 
-## 📁 โครงสร้างโฟลเดอร์แบบละเอียด (Folder Structure)
+---
+
+## 📚 สารบัญ
+- [ภาพรวมระบบ](#-ภาพรวมระบบ)
+- [โครงสร้างโปรเจกต์](#-โครงสร้างโปรเจกต์-folder-structure)
+- [สรุปฐานข้อมูล](#-สรุปโครงสร้างฐานข้อมูล-database-schema--tables)
+- [การจำแนกประเภทตาราง](#-การจำแนกประเภทตาราง-classification-of-database-tables)
+- [เทคโนโลยีที่ใช้](#-เทคโนโลยีที่ใช้-backend-tech-stack--libraries)
+- [วิธีติดตั้งและเริ่มใช้งาน](#-ขั้นตอนการติดตั้งและเริ่มใช้งาน-getting-started)
+
+---
+
+## 🔎 ภาพรวมระบบ
+
+Backend นี้รองรับงานหลัก:
+- จัดการครุภัณฑ์หลัก/ย่อย
+- จัดการคลังวัสดุ (รับเข้า/เบิกจ่าย/Stock Card)
+- จัดการจัดซื้อจัดจ้างและสถานะเอกสาร
+- จัดการบุคลากร หน่วยงาน ผู้ขาย โครงการ และงบประมาณ
+- ระบบผู้ใช้งาน + Role/Permission (ASP.NET Identity + JWT)
+- API สาธารณะสำหรับตรวจสอบครุภัณฑ์ผ่าน QR
+
+---
+
+## 📁 โครงสร้างโปรเจกต์ (Folder Structure)
 
 ```text
 AssetFlowManagementSystem/
 ├── APi/                                          # โครงสร้างโปรเจกต์หลัก (Web API Project)
 │   ├── Controllers/                               # [API Controllers] รองรับ HTTP Requests (35 Controllers)
-│   │   ├── AccountController.cs                   # ระบบเข้าสู่ระบบ / ลงทะเบียน / โปรไฟล์ผู้ใช้งาน (Authentication)
-│   │   ├── AcquisitionMethodController.cs         # จัดการข้อมูลวิธีการได้มาของทรัพย์สิน
-│   │   ├── AssetCategoriesController.cs           # จัดการข้อมูลหมวดหมู่ครุภัณฑ์
-│   │   ├── AssetItemController.cs                 # จัดการข้อมูลครุภัณฑ์หลัก
-│   │   ├── AssetRepairController.cs               # จัดการประวัติและการแจ้งซ่อมแซมครุภัณฑ์
-│   │   ├── AssetSubItemHistoryController.cs      # จัดการประวัติการโอนย้าย/ใช้งานครุภัณฑ์ย่อย
-│   │   ├── AssetUsageTypeController.cs            # จัดการประเภทการใช้งานครุภัณฑ์
-│   │   ├── AssetWithdrawalController.cs           # จัดการระบบเบิกจ่าย/ยืม/ครอบครองครุภัณฑ์
-│   │   ├── AssetsubItemController.cs              # จัดการข้อมูลครุภัณฑ์ย่อย (Sub-Items)
-│   │   ├── BaseApiController.cs                  # Base Controller หลักสำหรับกำหนด API Route
-│   │   ├── Budget_sourcesController.cs            # จัดการข้อมูลแหล่งเงินงบประมาณ
-│   │   ├── BuggyController.cs                    # ทดสอบระบบการคืนค่า Error Response
-│   │   ├── DepartmentsController.cs              # จัดการข้อมูลแผนก / คณะ / หน่วยงาน
-│   │   ├── Expense_typesController.cs            # จัดการข้อมูลประเภทค่าใช้จ่าย
-│   │   ├── FallbackController.cs                 # รองรับการส่งต่อ Single Page Application (SPA Fallback)
-│   │   ├── Fiscal_yearsController.cs             # จัดการข้อมูลปีงบประมาณ
-│   │   ├── Fund_categoriesController.cs          # จัดการข้อมูลหมวดหมู่เงิน
-│   │   ├── HiredetailsController.cs              # จัดการรายละเอียดสัญญาจัดจ้างทำของ
-│   │   ├── MaterialIssueDetailController.cs      # จัดการรายการเบิกจ่ายวัสดุออกจากคลัง
-│   │   ├── MaterialItemController.cs              # จัดการทะเบียนพรรณนาวัสดุสิ้นเปลือง
-│   │   ├── MaterialReceiveDetailController.cs    # จัดการรายการตรวจรับวัสดุเข้าคลัง
-│   │   ├── MaterialStockCardController.cs        # จัดการข้อมูลสต็อกการ์ดคลังวัสดุแบบ Real-time
-│   │   ├── MaterialUnitController.cs             # จัดการหน่วยนับของวัสดุ
-│   │   ├── MaterialWithdrawalController.cs       # จัดการเอกสารใบขอเบิกวัสดุ
-│   │   ├── Operation_typesController.cs          # จัดการประเภทการดำเนินงานจัดซื้อจัดจ้าง
-│   │   ├── PositionsController.cs                # จัดการตำแหน่งงานของบุคลากร
-│   │   ├── PrefixesController.cs                 # จัดการคำนำหน้าชื่อ
-│   │   ├── Procurement_recordsController.cs      # จัดการเอกสารบันทึกการจัดซื้อจัดจ้างหลัก
-│   │   ├── ProjectsController.cs                 # จัดการข้อมูลโครงการ/แผนงาน
-│   │   ├── PublicPortalController.cs              # API สาธารณะสำหรับระบบสแกน QR Code ตรวจสอบครุภัณฑ์
-│   │   ├── RolesController.cs                    # จัดการบทบาทและสิทธิ์การใช้งาน (Roles)
-│   │   ├── StaffController.cs                    # จัดการข้อมูลบุคลากร / เจ้าหน้าที่
-│   │   ├── SystemSettingsController.cs            # จัดการการตั้งค่าระบบ
-│   │   ├── UsersController.cs                    # จัดการข้อมูลผู้ใช้งานในระบบ
-│   │   └── VendorsController.cs                  # จัดการข้อมูลบริษัท / ผู้ขาย / ผู้รับจ้าง / คู่ค้า
+│   │   ├── AccountController.cs
+│   │   ├── AcquisitionMethodController.cs
+│   │   ├── AssetCategoriesController.cs
+│   │   ├── AssetItemController.cs
+│   │   ├── AssetRepairController.cs
+│   │   ├── AssetSubItemHistoryController.cs
+│   │   ├── AssetUsageTypeController.cs
+│   │   ├── AssetWithdrawalController.cs
+│   │   ├── AssetsubItemController.cs
+│   │   ├── BaseApiController.cs
+│   │   ├── Budget_sourcesController.cs
+│   │   ├── BuggyController.cs
+│   │   ├── DepartmentsController.cs
+│   │   ├── Expense_typesController.cs
+│   │   ├── FallbackController.cs
+│   │   ├── Fiscal_yearsController.cs
+│   │   ├── Fund_categoriesController.cs
+│   │   ├── HiredetailsController.cs
+│   │   ├── MaterialIssueDetailController.cs
+│   │   ├── MaterialItemController.cs
+│   │   ├── MaterialReceiveDetailController.cs
+│   │   ├── MaterialStockCardController.cs
+│   │   ├── MaterialUnitController.cs
+│   │   ├── MaterialWithdrawalController.cs
+│   │   ├── Operation_typesController.cs
+│   │   ├── PositionsController.cs
+│   │   ├── PrefixesController.cs
+│   │   ├── Procurement_recordsController.cs
+│   │   ├── ProjectsController.cs
+│   │   ├── PublicPortalController.cs
+│   │   ├── RolesController.cs
+│   │   ├── StaffController.cs
+│   │   ├── SystemSettingsController.cs
+│   │   ├── UsersController.cs
+│   │   └── VendorsController.cs
 │   │
 │   ├── DTOs/                                     # [Data Transfer Objects] รับ-ส่งข้อมูล API (23 DTOs)
-│   │   ├── AssetItemDto.cs                       # DTO ข้อมูลครุภัณฑ์หลัก
-│   │   ├── AssetRepairDto.cs                     # DTO การแจ้งซ่อมแซมครุภัณฑ์
-│   │   ├── AssetSubItemDisposalDto.cs            # DTO การตัดจำหน่ายครุภัณฑ์ย่อย
-│   │   ├── AssetSubItemDto.cs                    # DTO ข้อมูลครุภัณฑ์ย่อย
-│   │   ├── AssetSubItemHistoryDto.cs             # DTO ประวัติการโอนย้ายครุภัณฑ์ย่อย
-│   │   ├── AssetWithdrawalDto.cs                 # DTO การเบิก/ยืมครุภัณฑ์
-│   │   ├── HireDetailDto.cs                      # DTO รายละเอียดสัญญาจ้าง
-│   │   ├── MaterialIssueDetailDto.cs             # DTO การตัดจ่ายวัสดุ
-│   │   ├── MaterialItemDto.cs                    # DTO ทะเบียนพรรณนาวัสดุ
-│   │   ├── MaterialReceiveDetailDto.cs           # DTO การรับวัสดุเข้าคลัง
-│   │   ├── MaterialStockCardDto.cs               # DTO รายงานสต็อกการ์ด
-│   │   ├── MaterialWithdrawal.cs                 # DTO เอกสารใบขอเบิกวัสดุ
-│   │   ├── ProcurementAssetFullCreateDto.cs      # DTO สร้างจัดซื้อพร้อมลงทะเบียนครุภัณฑ์
-│   │   ├── ProcurementHireFullCreateDto.cs       # DTO สร้างจัดซื้อพร้อมสัญญาจ้าง
-│   │   ├── ProcurementMaterialFullCreateDto.cs   # DTO สร้างจัดซื้อพร้อมรับเข้าวัสดุ
-│   │   ├── ProcurementRecordStatusHistoryDto.cs  # DTO ประวัติสถานะจัดซื้อจัดจ้าง
-│   │   ├── Procurement_recordsDto.cs             # DTO บันทึกการจัดซื้อจัดจ้าง
-│   │   ├── ProjectDto.cs                         # DTO ข้อมูลโครงการ
-│   │   ├── PublicPortalDtos.cs                   # DTO ข้อมูลสาธารณะสแกน QR Code
-│   │   ├── RegisterDto.cs                        # DTO ลงทะเบียนผู้ใช้งานใหม่
-│   │   ├── RoleDto.cs                            # DTO จัดการสิทธิ์และบทบาท
-│   │   ├── StaffDto.cs                           # DTO ข้อมูลบุคลากร
-│   │   └── UserDto.cs                            # DTO ข้อมูลผู้ใช้งานและ Token
+│   │   ├── AssetItemDto.cs
+│   │   ├── AssetRepairDto.cs
+│   │   ├── AssetSubItemDisposalDto.cs
+│   │   ├── AssetSubItemDto.cs
+│   │   ├── AssetSubItemHistoryDto.cs
+│   │   ├── AssetWithdrawalDto.cs
+│   │   ├── HireDetailDto.cs
+│   │   ├── MaterialIssueDetailDto.cs
+│   │   ├── MaterialItemDto.cs
+│   │   ├── MaterialReceiveDetailDto.cs
+│   │   ├── MaterialStockCardDto.cs
+│   │   ├── MaterialWithdrawal.cs
+│   │   ├── ProcurementAssetFullCreateDto.cs
+│   │   ├── ProcurementHireFullCreateDto.cs
+│   │   ├── ProcurementMaterialFullCreateDto.cs
+│   │   ├── ProcurementRecordStatusHistoryDto.cs
+│   │   ├── Procurement_recordsDto.cs
+│   │   ├── ProjectDto.cs
+│   │   ├── PublicPortalDtos.cs
+│   │   ├── RegisterDto.cs
+│   │   ├── RoleDto.cs
+│   │   ├── StaffDto.cs
+│   │   └── UserDto.cs
 │   │
-│   ├── Errors/                                   # [Error Handling] รูปแบบ HTTP Response สำหรับ Error
-│   │   ├── ApiException.cs                       # Response Exception สำหรับ Developer/Production
-│   │   ├── ApiResponse.cs                        # Standard API Response (StatusCode & Message)
-│   │   └── ApiValidationErrorResponse.cs         # Response สำหรับ Model State Validation Failed
+│   ├── Errors/
+│   │   ├── ApiException.cs
+│   │   ├── ApiResponse.cs
+│   │   └── ApiValidationErrorResponse.cs
 │   │
-│   ├── Extensions/                               # [Service Extensions]
-│   │   ├── ApplicationServicesExtensions.cs     # ลงทะเบียน Repositories, AutoMapper, CORS, DbContext
-│   │   └── IdentityServiceExtensions.cs          # ลงทะเบียน ASP.NET Core Identity & JWT Configuration
+│   ├── Extensions/
+│   │   ├── ApplicationServicesExtensions.cs
+│   │   └── IdentityServiceExtensions.cs
 │   │
-│   ├── Helper/                                   # [Object Mapping Profiles]
-│   │   └── MappingProfiles.cs                    # AutoMapper Configurations (Entities <-> DTOs)
+│   ├── Helper/
+│   │   └── MappingProfiles.cs
 │   │
-│   ├── Middleware/                               # [Custom Middlewares]
-│   │   └── ExceptionMiddleware.cs                # Middleware ดักจับ Unhandled Exceptions
+│   ├── Middleware/
+│   │   └── ExceptionMiddleware.cs
 │   │
-│   ├── RequestHelpers/                           # [Query Helpers]
-│   │   └── Pagination.cs                         # Class Generic สำหรับส่งคืนผลลัพธ์แบบแบ่งหน้า (Paging)
+│   ├── RequestHelpers/
+│   │   └── Pagination.cs
 │   │
-│   ├── Program.cs                                # จุดเริ่มต้นโปรเจกต์ (DI Setup, Pipeline, Middleware)
-│   └── APi.csproj                                # ไฟล์คอนฟิกและ Dependencies ของ Web API Project
+│   ├── Program.cs
+│   └── APi.csproj
 │
-├── Core/                                         # [Domain Layer] Center Layer ของ Clean Architecture
-│   ├── Entities/                                 # [Domain Models / Entity Definitions] (32 Entities)
-│   │   ├── 📘 [Master Data Models]
-│   │   │   ├── AcquisitionMethod.cs              # โมเดลวิธีการได้มาของทรัพย์สิน
-│   │   │   ├── AppUser.cs                        # โมเดลผู้ใช้งานระบบ (สืบทอดจาก IdentityUser)
-│   │   │   ├── AssetCategory.cs                  # โมเดลหมวดหมู่ครุภัณฑ์
-│   │   │   ├── AssetItem.cs                      # โมเดลครุภัณฑ์หลัก
-│   │   │   ├── AssetSubItem.cs                   # โมเดลครุภัณฑ์ย่อย
-│   │   │   ├── asset_usage_types.cs              # โมเดลประเภทการใช้งานครุภัณฑ์
-│   │   │   ├── Budget_sources.cs                 # โมเดลแหล่งเงินงบประมาณ
-│   │   │   ├── Departments.cs                    # โมเดลแผนก/คณะ/หน่วยงาน
-│   │   │   ├── Expense_types.cs                  # โมเดลประเภทค่าใช้จ่าย
-│   │   │   ├── Fiscal_years.cs                   # โมเดลปีงบประมาณ
-│   │   │   ├── Fund_categories.cs                # โมเดลหมวดหมู่เงิน
-│   │   │   ├── MaterialItem.cs                   # โมเดลทะเบียนพรรณนาวัสดุ
-│   │   │   ├── MaterialUnit.cs                   # โมเดลหน่วยนับวัสดุ
-│   │   │   ├── Operation_types.cs                # โมเดลประเภทการดำเนินงานจัดซื้อ
-│   │   │   ├── Positions.cs                      # โมเดลตำแหน่งงาน
-│   │   │   ├── Prefixes.cs                       # โมเดลคำนำหน้าชื่อ
-│   │   │   ├── Projects.cs                       # โมเดลโครงการ/แผนงาน
-│   │   │   ├── Staffs.cs                         # โมเดลข้อมูลบุคลากร/เจ้าหน้าที่
-│   │   │   └── Vendors.cs                        # โมเดลบริษัท/คู่ค้า/ผู้รับจ้าง
+├── Core/                                         # [Domain Layer]
+│   ├── Entities/                                 # (32 Entities)
+│   │   ├── Master Data Models
+│   │   │   ├── AcquisitionMethod.cs
+│   │   │   ├── AppUser.cs
+│   │   │   ├── AssetCategory.cs
+│   │   │   ├── AssetItem.cs
+│   │   │   ├── AssetSubItem.cs
+│   │   │   ├── asset_usage_types.cs
+│   │   │   ├── Budget_sources.cs
+│   │   │   ├── Departments.cs
+│   │   │   ├── Expense_types.cs
+│   │   │   ├── Fiscal_years.cs
+│   │   │   ├── Fund_categories.cs
+│   │   │   ├── MaterialItem.cs
+│   │   │   ├── MaterialUnit.cs
+│   │   │   ├── Operation_types.cs
+│   │   │   ├── Positions.cs
+│   │   │   ├── Prefixes.cs
+│   │   │   ├── Projects.cs
+│   │   │   ├── Staffs.cs
+│   │   │   └── Vendors.cs
 │   │   │
-│   │   ├── 🔄 [Transaction Data Models]
-│   │   │   ├── AssetRepair.cs                    # โมเดลการแจ้งซ่อมและประวัติซ่อมแซมครุภัณฑ์
-│   │   │   ├── AssetSubItemDisposal.cs           # โมเดลการตัดจำหน่ายครุภัณฑ์ย่อย
-│   │   │   ├── AssetSubItemHistory.cs            # โมเดลประวัติการย้าย/ใช้งานครุภัณฑ์ย่อย
-│   │   │   ├── AssetWithdrawal.cs                # โมเดลการเบิก/ยืม/ครอบครองครุภัณฑ์
-│   │   │   ├── HireDetail.cs                     # โมเดลรายละเอียดสัญญาจัดจ้างทำของ
-│   │   │   ├── MaterialIssueDetail.cs            # โมเดลรายการจ่ายวัสดุออกจากคลัง
-│   │   │   ├── MaterialReceiveDetail.cs          # โมเดลรายการรับวัสดุเข้าคลัง
-│   │   │   ├── MaterialStockCard.cs              # โมเดลสต็อกการ์ดคลังวัสดุ (Inventory Ledger)
-│   │   │   ├── MaterialWithdrawal.cs             # โมเดลเอกสารใบขอเบิกวัสดุ
-│   │   │   ├── ProcurementRecordStatusHistory.cs # โมเดลประวัติการเปลี่ยนสถานะจัดซื้อจัดจ้าง
-│   │   │   └── Procurement_records.cs            # โมเดลบันทึกการจัดซื้อจัดจ้างหลัก
+│   │   ├── Transaction Data Models
+│   │   │   ├── AssetRepair.cs
+│   │   │   ├── AssetSubItemDisposal.cs
+│   │   │   ├── AssetSubItemHistory.cs
+│   │   │   ├── AssetWithdrawal.cs
+│   │   │   ├── HireDetail.cs
+│   │   │   ├── MaterialIssueDetail.cs
+│   │   │   ├── MaterialReceiveDetail.cs
+│   │   │   ├── MaterialStockCard.cs
+│   │   │   ├── MaterialWithdrawal.cs
+│   │   │   ├── ProcurementRecordStatusHistory.cs
+│   │   │   └── Procurement_records.cs
 │   │   │
-│   │   └── ⚙️ [System & Config Models]
-│   │       ├── BaseEntity.cs                     # Class พื้นฐานสำหรับ Entities (มี Id)
-│   │       └── SystemSetting.cs                  # โมเดลการตั้งค่าระบบ
+│   │   └── System & Config Models
+│   │       ├── BaseEntity.cs
+│   │       └── SystemSetting.cs
 │   │
-│   ├── Interfaces/                               # [Service Interfaces & Contracts]
-│   │   ├── IGenericRepository.cs                 # Interface สำหรับ Generic Repository CRUD
-│   │   ├── ISpecification.cs                     # Interface สำหรับ Specification Pattern Query
-│   │   ├── IUnitOfWork.cs                        # Interface สำหรับ Unit of Work Transaction
-│   │   └── Specifications/                       # Implementation ของ Specification Pattern
-│   │       ├── BaseSpecification.cs              # Core Specification Logic
-│   │       └── PagingParams.cs                   # Standard Parameters สำหรับการแบ่งหน้า
+│   ├── Interfaces/
+│   │   ├── IGenericRepository.cs
+│   │   ├── ISpecification.cs
+│   │   ├── IUnitOfWork.cs
+│   │   └── Specifications/
+│   │       ├── BaseSpecification.cs
+│   │       └── PagingParams.cs
 │   │
-│   └── Core.csproj                               # ไฟล์คอนฟิก Core Class Library
+│   └── Core.csproj
 │
 └── Infrastructure/                               # [Data Access & Infrastructure Layer]
-    ├── Config/                                   # [EF Core Configurations] การกำหนด Fluent API
-    ├── Data/                                     # [Data Logic & Repository Implementation]
-    │   ├── GenericRepository.cs                  # Generic Repository Implementation
-    │   ├── SpecificationEvaluator.cs            # Evaluator แปลง Specification เป็น LINQ Query
-    │   ├── StoreContext.cs                       # EF Core DbContext Class (IdentityDbContext)
-    │   ├── StoreContextSeed.cs                   # Logic การลงข้อมูลเริ่มต้น (Data Seeding)
-    │   ├── UnitOfWork.cs                         # Unit of Work Implementation
-    │   └── SeedData/                             # โฟลเดอร์จัดเก็บไฟล์ Seed Data JSON
-    │
-    ├── Migrations/                               # [EF Core Migrations] ประวัติการเปลี่ยนโครงสร้าง DB
-    ├── Services/                                 # [Infrastructure Services]
-    │   └── FileService.cs                        # บริการจัดการอัปโหลด/บันทึก/ลบไฟล์แนบ
-    └── Infrastructure.csproj                     # ไฟล์คอนฟิก Infrastructure Class Library
+    ├── Config/
+    ├── Data/
+    │   ├── GenericRepository.cs
+    │   ├── SpecificationEvaluator.cs
+    │   ├── StoreContext.cs
+    │   ├── StoreContextSeed.cs
+    │   ├── UnitOfWork.cs
+    │   └── SeedData/
+    ├── Migrations/
+    ├── Services/
+    │   └── FileService.cs
+    └── Infrastructure.csproj
+```
 
-    🗄️ สรุปโครงสร้างฐานข้อมูล (Database Schema & Tables)
-โครงสร้างตารางฐานข้อมูลอ้างอิงจาก Models Class Definition ในระบบ (Entity Framework Core Mapping):
+---
 
-1. AspNetUsers (Model: AppUser)
-ตารางจัดการผู้ใช้งานระบบ (สืบทอดจาก IdentityUser)
+## 🗄️ สรุปโครงสร้างฐานข้อมูล (Database Schema & Tables)
 
-Primary Key: Id (string / nvarchar(450))
-Fields: UserName, Email, PasswordHash, PhoneNumber, DisplayName
-Relationships: One-to-Many กับ Staffs และจัดการสิทธิ์ผ่าน AspNetUserRoles
-2. Departments (Model: Departments)
-ตารางข้อมูลแผนก / คณะ / หน่วยงานภายในองค์กร
+อ้างอิงจาก Entity Framework Core Models ในระบบ
 
-Primary Key: department_id (int, Identity)
-Fields: department_name (nvarchar(max))
-Relationships: One-to-Many กับ Staffs, Procurement_records, MaterialStockCards
-3. Positions (Model: Positions)
-ตารางตำแหน่งงานของบุคลากร
+### 1) AspNetUsers (AppUser)
+- PK: `Id` (string)
+- Fields: `UserName, Email, PasswordHash, PhoneNumber, DisplayName`
+- Relation: One-to-Many กับ `Staffs`, สิทธิ์ผ่าน `AspNetUserRoles`
 
-Primary Key: position_id (int, Identity)
-Fields: position_name (nvarchar(max))
-Relationships: One-to-Many กับ Staffs
-4. Prefixes (Model: Prefixes)
-ตารางคำนำหน้าชื่อ
+### 2) Departments
+- PK: `department_id`
+- Fields: `department_name`
+- Relation: One-to-Many กับ `Staffs, Procurement_records, MaterialStockCards`
 
-Primary Key: prefix_id (int, Identity)
-Fields: prefix_name (nvarchar(max)), short_name (nvarchar(max))
-Relationships: One-to-Many กับ Staffs
-5. Staffs (Model: Staffs)
-ตารางทะเบียนข้อมูลบุคลากรและเจ้าหน้าที่
+### 3) Positions
+- PK: `position_id`
+- Fields: `position_name`
+- Relation: One-to-Many กับ `Staffs`
 
-Primary Key: staff_id (int, Identity)
-Foreign Keys:
-prefix_id -> Prefixes.prefix_id
-position_id -> Positions.position_id
-department_id -> Departments.department_id
-Fields: first_name (nvarchar(max)), last_name (nvarchar(max)), email (nvarchar(max)), phone_number (nvarchar(max))
-Relationships: One-to-Many กับ Procurement_records, AssetWithdrawals, AssetRepairs, MaterialIssueDetails, MaterialWithdrawals
-6. Vendors (Model: Vendors)
-ตารางข้อมูลบริษัท / ผู้ขาย / ผู้รับจ้าง / คู่ค้า
+### 4) Prefixes
+- PK: `prefix_id`
+- Fields: `prefix_name, short_name`
+- Relation: One-to-Many กับ `Staffs`
 
-Primary Key: vendor_id (int, Identity)
-Fields: vendor_name (nvarchar(max)), tax_id (nvarchar(max)), address (nvarchar(max)), phone_number (nvarchar(max)), contact_name (nvarchar(max))
-Relationships: One-to-Many กับ Procurement_records
-7. Fiscal_years (Model: Fiscal_years)
-ตารางรอบปีงบประมาณ
+### 5) Staffs
+- PK: `staff_id`
+- FK: `prefix_id, position_id, department_id`
+- Fields: `first_name, last_name, email, phone_number`
+- Relation: ไปยังเอกสารธุรกรรมหลายตาราง
 
-Primary Key: fiscal_year_id (int, Identity)
-Fields: year_name (int), start_date (datetime), end_date (datetime), is_active (bit)
-Relationships: One-to-Many กับ Procurement_records, MaterialStockCards
-8. Fund_categories (Model: Fund_categories)
-ตารางหมวดหมู่เงินงบประมาณ
+### 6) Vendors
+- PK: `vendor_id`
+- Fields: `vendor_name, tax_id, address, phone_number, contact_name`
+- Relation: One-to-Many กับ `Procurement_records`
 
-Primary Key: fund_category_id (int, Identity)
-Fields: fund_category_name (nvarchar(max))
-Relationships: One-to-Many กับ Procurement_records
-9. Budget_sources (Model: Budget_sources)
-ตารางแหล่งเงินงบประมาณ
+### 7) Fiscal_years
+- PK: `fiscal_year_id`
+- Fields: `year_name, start_date, end_date, is_active`
+- Relation: One-to-Many กับ `Procurement_records, MaterialStockCards`
 
-Primary Key: budget_source_id (int, Identity)
-Fields: budget_source_name (nvarchar(max))
-Relationships: One-to-Many กับ Procurement_records
-10. Expense_types (Model: Expense_types)
-ตารางประเภทค่าใช้จ่าย
+### 8) Fund_categories
+- PK: `fund_category_id`
+- Fields: `fund_category_name`
+- Relation: One-to-Many กับ `Procurement_records`
 
-Primary Key: expense_type_id (int, Identity)
-Fields: expense_type_name (nvarchar(max))
-Relationships: One-to-Many กับ Procurement_records
-11. Operation_types (Model: Operation_types)
-ตารางประเภทการดำเนินงานจัดซื้อจัดจ้าง
+### 9) Budget_sources
+- PK: `budget_source_id`
+- Fields: `budget_source_name`
+- Relation: One-to-Many กับ `Procurement_records`
 
-Primary Key: operation_type_id (int, Identity)
-Fields: operation_type_name (nvarchar(max))
-Relationships: One-to-Many กับ Procurement_records
-12. Projects (Model: Projects)
-ตารางรายชื่อโครงการ / แผนงาน
+### 10) Expense_types
+- PK: `expense_type_id`
+- Fields: `expense_type_name`
+- Relation: One-to-Many กับ `Procurement_records`
 
-Primary Key: project_id (int, Identity)
-Fields: project_code (nvarchar(max)), project_name (nvarchar(max)), description (nvarchar(max))
-Relationships: One-to-Many กับ Procurement_records
-13. AssetCategories (Model: AssetCategory)
-ตารางหมวดหมู่ครุภัณฑ์
+### 11) Operation_types
+- PK: `operation_type_id`
+- Fields: `operation_type_name`
+- Relation: One-to-Many กับ `Procurement_records`
 
-Primary Key: asset_category_id (int, Identity)
-Fields: category_code (nvarchar(max)), category_name (nvarchar(max))
-Relationships: One-to-Many กับ AssetItems
-14. AcquisitionMethods (Model: AcquisitionMethod)
-ตารางวิธีการได้มาของทรัพย์สิน
+### 12) Projects
+- PK: `project_id`
+- Fields: `project_code, project_name, description`
+- Relation: One-to-Many กับ `Procurement_records`
 
-Primary Key: acquisition_method_id (int, Identity)
-Fields: method_name (nvarchar(max))
-Relationships: One-to-Many กับ AssetItems
-15. asset_usage_types (Model: AssetUsageType)
-ตารางประเภทการใช้งานครุภัณฑ์
+### 13) AssetCategories
+- PK: `asset_category_id`
+- Fields: `category_code, category_name`
+- Relation: One-to-Many กับ `AssetItems`
 
-Primary Key: asset_usage_type_id (int, Identity)
-Fields: usage_type_name (nvarchar(max))
-16. MaterialUnits (Model: MaterialUnit)
-ตารางหน่วยนับพรรณนาวัสดุ
+### 14) AcquisitionMethods
+- PK: `acquisition_method_id`
+- Fields: `method_name`
+- Relation: One-to-Many กับ `AssetItems`
 
-Primary Key: unit_id (int, Identity)
-Fields: unit_name (nvarchar(max))
-Relationships: One-to-Many กับ MaterialItems
-17. AssetItems (Model: AssetItem)
-ตารางทะเบียนครุภัณฑ์หลัก
+### 15) AssetUsageTypes
+- PK: `asset_usage_type_id`
+- Fields: `usage_type_name`
 
-Primary Key: asset_item_id (int, Identity)
-Foreign Keys:
-procurement_record_id -> Procurement_records.procurement_record_id
-asset_category_id -> AssetCategory.asset_category_id
-acquisition_method_id -> AcquisitionMethod.acquisition_method_id
-department_id -> Departments.department_id
-Fields: asset_code (nvarchar(max)), asset_name (nvarchar(max)), price (decimal(18,2)), useful_life (int), received_date (datetime)
-Relationships: One-to-Many กับ AssetSubItems
-18. AssetSubItems (Model: AssetSubItem)
-ตารางทะเบียนครุภัณฑ์ย่อย (Sub-Items / Serial Items)
+### 16) MaterialUnits
+- PK: `unit_id`
+- Fields: `unit_name`
+- Relation: One-to-Many กับ `MaterialItems`
 
-Primary Key: asset_sub_item_id (int, Identity)
-Foreign Key: asset_item_id -> AssetItem.asset_item_id
-Fields: sub_item_code (nvarchar(max)), serial_number (nvarchar(max)), status (nvarchar(max)), storage_location (nvarchar(max))
-Relationships: One-to-Many กับ AssetSubItemHistories, AssetSubItemDisposals
-19. MaterialItems (Model: MaterialItem)
-ตารางทะเบียนพรรณนาวัสดุสิ้นเปลือง / สินค้าในคลัง
+### 17) AssetItems
+- PK: `asset_item_id`
+- FK: `procurement_record_id, asset_category_id, acquisition_method_id, department_id`
+- Fields: `asset_code, asset_name, price, useful_life, received_date`
+- Relation: One-to-Many กับ `AssetSubItems`
 
-Primary Key: material_item_id (int, Identity)
-Foreign Key: unit_id -> MaterialUnit.unit_id
-Fields: material_code (nvarchar(max)), material_name (nvarchar(max)), unit_price (decimal(18,2)), min_quantity (decimal(18,2)), max_quantity (decimal(18,2))
-Relationships: One-to-Many กับ MaterialReceiveDetails, MaterialIssueDetails, MaterialStockCards
-20. Procurement_records (Model: Procurement_records)
-ตารางเอกสารบันทึกการจัดซื้อจัดจ้างหลัก
+### 18) AssetSubItems
+- PK: `asset_sub_item_id`
+- FK: `asset_item_id`
+- Fields: `sub_item_code, serial_number, status, storage_location`
+- Relation: One-to-Many กับ `AssetSubItemHistories, AssetSubItemDisposals`
 
-Primary Key: procurement_record_id (int, Identity)
-Foreign Keys:
-fiscal_year_id -> Fiscal_years.fiscal_year_id
-operation_type_id -> Operation_types.operation_type_id
-expense_type_id -> Expense_types.expense_type_id
-department_id -> Departments.department_id
-vendor_id -> Vendors.vendor_id
-fund_category_id -> Fund_categories.fund_category_id
-budget_source_id -> Budget_sources.budget_source_id
-staff_id -> Staffs.staff_id
-project_id -> Projects.project_id
-Fields: document_no (nvarchar(max)), document_date (datetime), inspection_date (datetime), total_amount (decimal(18,2)), amount_text (nvarchar(max)), status (nvarchar(max)), reference_no (nvarchar(max)), attachment_file_path (nvarchar(max))
-Relationships: One-to-Many กับ HireDetails, ProcurementRecordStatusHistories, AssetItems, MaterialReceiveDetails, AssetWithdrawals
-21. HireDetails (Model: HireDetail)
-ตารางรายละเอียดสัญญาจัดจ้างทำของ
+### 19) MaterialItems
+- PK: `material_item_id`
+- FK: `unit_id`
+- Fields: `material_code, material_name, unit_price, min_quantity, max_quantity`
+- Relation: One-to-Many กับ `MaterialReceiveDetails, MaterialIssueDetails, MaterialStockCards`
 
-Primary Key: hire_detail_id (int, Identity)
-Foreign Key: procurement_record_id -> Procurement_records.procurement_record_id
-Fields: contract_no (nvarchar(max)), start_date / end_date (datetime), contract_amount (decimal(18,2)), work_description (nvarchar(max))
-22. ProcurementRecordStatusHistories (Model: ProcurementRecordStatusHistory)
-ตารางบันทึกประวัติการเปลี่ยนสถานะจัดซื้อจัดจ้าง
+### 20) Procurement_records
+- PK: `procurement_record_id`
+- FK: `fiscal_year_id, operation_type_id, expense_type_id, department_id, vendor_id, fund_category_id, budget_source_id, staff_id, project_id`
+- Fields: `document_no, document_date, inspection_date, total_amount, amount_text, status, reference_no, attachment_file_path`
+- Relation: One-to-Many กับ `HireDetails, ProcurementRecordStatusHistories, AssetItems, MaterialReceiveDetails, AssetWithdrawals`
 
-Primary Key: status_history_id (int, Identity)
-Foreign Key: procurement_record_id -> Procurement_records.procurement_record_id
-Fields: previous_status (nvarchar(max)), new_status (nvarchar(max)), changed_at (datetime), changed_by (nvarchar(max)), remarks (nvarchar(max))
-23. AssetWithdrawals (Model: AssetWithdrawal)
-ตารางประวัติการเบิก / ยืม / ผู้ครอบครองครุภัณฑ์
+### 21) HireDetails
+- PK: `hire_detail_id`
+- FK: `procurement_record_id`
+- Fields: `contract_no, start_date, end_date, contract_amount, work_description`
 
-Primary Key: procurement_withdrawal_id (int, Identity)
-Foreign Keys:
-procurement_record_id -> Procurement_records.procurement_record_id
-staff_id -> Staffs.staff_id
-Fields: withdrawal_document_no (nvarchar(100)), withdrawal_date (date), end_date (date), storage_location (nvarchar(255)), purpose (nvarchar(500))
-Relationships: One-to-Many กับ AssetRepairs
-24. AssetRepairs (Model: AssetRepair)
-ตารางบันทึกการส่งซ่อมแซมและค่าใช้จ่ายซ่อมแซมครุภัณฑ์
+### 22) ProcurementRecordStatusHistories
+- PK: `status_history_id`
+- FK: `procurement_record_id`
+- Fields: `previous_status, new_status, changed_at, changed_by, remarks`
 
-Primary Key: asset_repair_id (int, Identity)
-Foreign Keys:
-procurement_withdrawal_id -> AssetWithdrawal.procurement_withdrawal_id
-staff_id -> Staffs.staff_id
-Fields: repair_document_no (nvarchar(max)), repair_date (datetime), problem_description (nvarchar(max)), repair_shop_name (nvarchar(max)), repair_cost (decimal(18,2)), status (nvarchar(max))
-25. AssetSubItemHistories (Model: AssetSubItemHistory)
-ตารางประวัติการเคลื่อนย้าย / การใช้งานครุภัณฑ์ย่อย
+### 23) AssetWithdrawals
+- PK: `procurement_withdrawal_id`
+- FK: `procurement_record_id, staff_id`
+- Fields: `withdrawal_document_no, withdrawal_date, end_date, storage_location, purpose`
+- Relation: One-to-Many กับ `AssetRepairs`
 
-Primary Key: sub_item_history_id (int, Identity)
-Foreign Keys:
-asset_sub_item_id -> AssetSubItem.asset_sub_item_id
-staff_id -> Staffs.staff_id
-department_id -> Departments.department_id
-Fields: action_type (nvarchar(max)), action_date (datetime), location (nvarchar(max)), remarks (nvarchar(max))
-26. AssetSubItemDisposals (Model: AssetSubItemDisposal)
-ตารางบันทึกการตัดจำหน่ายครุภัณฑ์ย่อยออกจากบัญชี
+### 24) AssetRepairs
+- PK: `asset_repair_id`
+- FK: `procurement_withdrawal_id, staff_id`
+- Fields: `repair_document_no, repair_date, problem_description, repair_shop_name, repair_cost, status`
 
-Primary Key: sub_item_disposal_id (int, Identity)
-Foreign Key: asset_sub_item_id -> AssetSubItem.asset_sub_item_id
-Fields: disposal_date (datetime), disposal_method (nvarchar(200)), disposal_reason (nvarchar(1000)), approved_by (nvarchar(200)), quantity_disposed (decimal(18,2))
-27. MaterialWithdrawals (Model: MaterialWithdrawal)
-ตารางเอกสารใบขอเบิกพรรณนาวัสดุ
+### 25) AssetSubItemHistories
+- PK: `sub_item_history_id`
+- FK: `asset_sub_item_id, staff_id, department_id`
+- Fields: `action_type, action_date, location, remarks`
 
-Primary Key: material_withdrawal_id (int, Identity)
-Foreign Keys:
-staff_id -> Staffs.staff_id
-procurement_record_id -> Procurement_records.procurement_record_id
-Fields: withdrawal_document_no (nvarchar(max)), receive_document_no (nvarchar(max)), remark (nvarchar(max))
-28. MaterialReceiveDetails (Model: MaterialReceiveDetail)
-ตารางรายการตรวจรับวัสดุเข้าคลัง
+### 26) AssetSubItemDisposals
+- PK: `sub_item_disposal_id`
+- FK: `asset_sub_item_id`
+- Fields: `disposal_date, disposal_method, disposal_reason, approved_by, quantity_disposed`
 
-Primary Key: receive_detail_id (int, Identity)
-Foreign Keys:
-procurement_record_id -> Procurement_records.procurement_record_id
-material_item_id -> MaterialItem.material_item_id
-Fields: item_no (int), quantity (decimal(18,2)), unit_price (decimal(18,2)), total_amount (decimal(18,2))
-Relationships: One-to-Many กับ MaterialStockCards
-29. MaterialIssueDetails (Model: MaterialIssueDetail)
-ตารางรายการตัดจ่ายวัสดุออกจากคลัง
+### 27) MaterialWithdrawals
+- PK: `material_withdrawal_id`
+- FK: `staff_id, procurement_record_id`
+- Fields: `withdrawal_document_no, receive_document_no, remark`
 
-Primary Key: issue_detail_id (int, Identity)
-Foreign Keys:
-procurement_record_id -> Procurement_records.procurement_record_id
-material_item_id -> MaterialItem.material_item_id
-staff_id -> Staffs.staff_id
-Fields: issue_date (date), quantity (decimal(18,2)), unit_price (decimal(18,2)), total_amount (decimal(18,2))
-Relationships: One-to-Many กับ MaterialStockCards
-30. MaterialStockCards (Model: MaterialStockCard)
-ตารางสต็อกการ์ดบันทึก Transaction และยอดยกไปคงเหลือ
+### 28) MaterialReceiveDetails
+- PK: `receive_detail_id`
+- FK: `procurement_record_id, material_item_id`
+- Fields: `item_no, quantity, unit_price, total_amount`
+- Relation: One-to-Many กับ `MaterialStockCards`
 
-Primary Key: stock_card_id (int, Identity)
-Foreign Keys:
-material_item_id -> MaterialItem.material_item_id
-receive_detail_id -> MaterialReceiveDetail.receive_detail_id
-issue_detail_id -> MaterialIssueDetail.issue_detail_id
-fiscal_year_id -> Fiscal_years.fiscal_year_id
-department_id -> Departments.department_id
-Fields: transaction_date (date), transaction_type (nvarchar(20)), quantity_in (decimal(18,2)), quantity_out (decimal(18,2)), balance_qty (decimal(18,2)), unit_price (decimal(18,2)), total_amount (decimal(18,2))
-31. SystemSettings (Model: SystemSetting)
-ตารางการตั้งค่าระบบ
+### 29) MaterialIssueDetails
+- PK: `issue_detail_id`
+- FK: `procurement_record_id, material_item_id, staff_id`
+- Fields: `issue_date, quantity, unit_price, total_amount`
+- Relation: One-to-Many กับ `MaterialStockCards`
 
-Primary Key: id (int, Identity)
-Fields: system_name (nvarchar(max)), system_code (nvarchar(max)), setting_value (nvarchar(max))
-📌 การจำแนกประเภทตาราง (Classification of Database Tables)
-เพื่อความเข้าใจในสถาปัตยกรรมข้อมูล ตารางทั้งหมด 31 ตารางสามารถแบ่งออกตามลักษณะการใช้งานได้ดังนี้:
+### 30) MaterialStockCards
+- PK: `stock_card_id`
+- FK: `material_item_id, receive_detail_id, issue_detail_id, fiscal_year_id, department_id`
+- Fields: `transaction_date, transaction_type, quantity_in, quantity_out, balance_qty, unit_price, total_amount`
 
-1. 📘 Master File / Master Data (ตารางอ้างอิงหลัก)
-ข้อมูลอ้างอิงพื้นฐานของระบบที่มีการเปลี่ยนแปลงน้อย ใช้สำหรับอ้างอิงในตารางอื่นๆ:
+### 31) SystemSettings
+- PK: `id`
+- Fields: `system_name, system_code, setting_value`
 
-AspNetUsers (ผู้ใช้งานระบบ)
-Departments (หน่วยงาน/แผนก/คณะ)
-Positions (ตำแหน่งงาน)
-Prefixes (คำนำหน้าชื่อ)
-Staffs (ข้อมูลบุคลากร/เจ้าหน้าที่)
-Vendors (บริษัท/ผู้ขาย/ผู้รับจ้าง/คู่ค้า)
-Fiscal_years (ปีงบประมาณ)
-Fund_categories (หมวดหมู่เงินงบประมาณ)
-Budget_sources (แหล่งเงินงบประมาณ)
-Expense_types (ประเภทค่าใช้จ่าย)
-Operation_types (ประเภทการดำเนินงานจัดซื้อจัดจ้าง)
-Projects (โครงการ/แผนงาน)
-AssetCategories (หมวดหมู่ครุภัณฑ์)
-AcquisitionMethods (วิธีการได้มาของทรัพย์สิน)
-AssetUsageTypes (ประเภทการใช้งานครุภัณฑ์)
-MaterialUnits (หน่วยนับพรรณนาวัสดุ)
-AssetItems (ทะเบียนครุภัณฑ์หลัก)
-AssetSubItems (ทะเบียนครุภัณฑ์ย่อย)
-MaterialItems (ทะเบียนพรรณนาวัสดุสิ้นเปลือง)
-2. 🔄 Transaction Data (ตารางรายการ / กิจกรรม)
-ข้อมูลที่เกิดจากการสมัคร ทำรายการ หรือประมวลผลตามกิจกรรม/ช่วงเวลา:
+---
 
-procurement_records (บันทึกเอกสารการจัดซื้อจัดจ้างหลัก)
-hireDetails (รายละเอียดสัญญาจัดจ้างทำของ)
-procurementRecordStatusHistories (ประวัติการเปลี่ยนสถานะเอกสารจัดซื้อ)
-assetWithdrawals (ประวัติการเบิก/ยืม/ครอบครองครุภัณฑ์)
-assetRepairs (ประวัติการส่งซ่อมแซมและค่าใช้จ่ายครุภัณฑ์)
-assetSubItemHistories (ประวัติการเคลื่อนย้าย/ใช้งานครุภัณฑ์ย่อย)
-assetSubItemDisposals (การตัดจำหน่ายครุภัณฑ์ย่อยออกจากบัญชี)
-materialWithdrawals (เอกสารใบขอเบิกพรรณนาวัสดุ)
-materialReceiveDetails (รายการตรวจรับวัสดุเข้าคลัง)
-materialIssueDetails (รายการตัดจ่ายวัสดุออกจากคลัง)
-materialStockCards (สต็อกการ์ดคลังวัสดุคำนวณยอดยกไปคงเหลือแบบ Real-time)
-3. ⚙️ System & Config Data (ตารางตั้งค่าระบบ)
-ข้อมูลการตั้งค่า ค่าคอนฟิก และสิทธิ์ในระบบ:
+## 📌 การจำแนกประเภทตาราง (Classification of Database Tables)
 
-system_settings (ตั้งค่าระบบและคอนฟิกพื้นฐาน)
-AspNetRoles / AspNetUserRoles (ตารางจัดการบทบาทและสิทธิ์การใช้งาน)
-🛠️ เทคโนโลยีที่ใช้ (Backend Tech Stack & Libraries)
-หมวดหมู่	เทคโนโลยี / ไลบรารี	เวอร์ชัน	คำอธิบายวัตถุประสงค์การใช้งาน
-Framework	.NET SDK	9.0	Framework หลักในการพัฒนา Web API ประสิทธิภาพสูง
-Web API Engine	ASP.NET Core Web API	9.0	Engine จัดการ Routing, Controller, Dependency Injection
-Database Engine	Microsoft SQL Server	-	ระบบจัดการฐานข้อมูลเชิงสัมพันธ์ (Relational Database)
-ORM / Data Access	Entity Framework Core	9.0.14	Object-Relational Mapper สำหรับเขียน LINQ แทน SQL Command
-EF Core Provider	Microsoft.EntityFrameworkCore.SqlServer	9.0.14	Driver เชื่อมต่อ EF Core กับ SQL Server Database
-EF Core Tools	Microsoft.EntityFrameworkCore.Tools / .Design	9.0.14	เครื่องมือจัดการ CLI Database Migrations
-Identity & Security	Microsoft.AspNetCore.Identity.EntityFrameworkCore	9.0.14	ระบบจัดการบัญชีผู้ใช้ รหัสผ่าน และสิทธิ์บทบาท (RBAC)
-Authentication	System.IdentityModel.Tokens.Jwt	-	สร้างและตรวจสอบความถูกต้องของ JWT Access Tokens
-Object Mapper	AutoMapper	16.1.1	ไลบรารีแปลงข้อมูลอัตโนมัติระหว่าง Domain Entities และ DTOs
-API Documentation	Swashbuckle.AspNetCore (Swagger)	9.0.6	สร้างหน้า Interactive API Documentation & Testing UI
-OpenAPI Spec	Microsoft.AspNetCore.OpenApi	9.0.14	เครื่องมือสร้าง Metadata ตามมาตรฐาน OpenAPI Spec
-Payment Integration	Stripe.net	51.0.0	SDK สำหรับเชื่อมต่อระบบชำระเงินภายนอก
-🚀 ขั้นตอนการติดตั้งและเริ่มใช้งาน (Getting Started)
-Prerequisites (สิ่งที่ต้องมีในเครื่อง)
-.NET 9.0 SDK
-Microsoft SQL Server (LocalDB, SQL Express หรือ SQL Server Instance)
-1. ตรวจสอบ Connection String
-เปิดไฟล์ APi/appsettings.json หรือ APi/appsettings.Development.json และกำหนด Connection String สำหรับเชื่อมต่อ SQL Server:
+### 1) 📘 Master Data
+- AspNetUsers
+- Departments
+- Positions
+- Prefixes
+- Staffs
+- Vendors
+- Fiscal_years
+- Fund_categories
+- Budget_sources
+- Expense_types
+- Operation_types
+- Projects
+- AssetCategories
+- AcquisitionMethods
+- AssetUsageTypes
+- MaterialUnits
+- AssetItems
+- AssetSubItems
+- MaterialItems
 
-json
+### 2) 🔄 Transaction Data
+- procurement_records
+- hireDetails
+- procurementRecordStatusHistories
+- assetWithdrawals
+- assetRepairs
+- assetSubItemHistories
+- assetSubItemDisposals
+- materialWithdrawals
+- materialReceiveDetails
+- materialIssueDetails
+- materialStockCards
+
+### 3) ⚙️ System & Config Data
+- system_settings
+- AspNetRoles / AspNetUserRoles
+
+---
+
+## 🛠️ เทคโนโลยีที่ใช้ (Backend Tech Stack & Libraries)
+
+| หมวดหมู่ | เทคโนโลยี / ไลบรารี | เวอร์ชัน | วัตถุประสงค์ |
+|---|---|---|---|
+| Framework | .NET SDK | 9.0 | Framework หลักสำหรับพัฒนา Web API |
+| Web API Engine | ASP.NET Core Web API | 9.0 | Routing, Controller, DI |
+| Database Engine | Microsoft SQL Server | - | RDBMS |
+| ORM / Data Access | Entity Framework Core | 9.0.14 | ORM + LINQ |
+| EF Core Provider | Microsoft.EntityFrameworkCore.SqlServer | 9.0.14 | เชื่อมต่อ SQL Server |
+| EF Core Tools | Microsoft.EntityFrameworkCore.Tools / .Design | 9.0.14 | จัดการ Migration |
+| Identity & Security | Microsoft.AspNetCore.Identity.EntityFrameworkCore | 9.0.14 | User/Role Management |
+| Authentication | System.IdentityModel.Tokens.Jwt | - | JWT Token |
+| Object Mapper | AutoMapper | 16.1.1 | Mapping Entity ↔ DTO |
+| API Documentation | Swashbuckle.AspNetCore | 9.0.6 | Swagger UI |
+| OpenAPI Spec | Microsoft.AspNetCore.OpenApi | 9.0.14 | OpenAPI Metadata |
+| Payment Integration | Stripe.net | 51.0.0 | เชื่อมต่อชำระเงินภายนอก |
+
+---
+
+## 🚀 ขั้นตอนการติดตั้งและเริ่มใช้งาน (Getting Started)
+
+### Prerequisites
+- .NET 9.0 SDK
+- Microsoft SQL Server (LocalDB / SQL Express / SQL Server Instance)
+
+### 1) ตั้งค่า Connection String
+แก้ไฟล์ `APi/appsettings.json` หรือ `APi/appsettings.Development.json`
+
+```json
 {
   "ConnectionStrings": {
     "DefaultConnection": "Server=localhost;Database=AssetFlowDb;Trusted_Connection=True;TrustServerCertificate=True;"
   }
 }
-2. อัปเดตโครงสร้างฐานข้อมูล (EF Core Migrations)
-เปิด Terminal ที่โฟลเดอร์หลักของโปรเจกต์ แล้วรันคำสั่ง:
+```
 
-bash
+### 2) อัปเดตฐานข้อมูลด้วย EF Core Migrations
+
+```bash
 dotnet ef database update --project Infrastructure --startup-project APi
-3. เริ่มรัน Backend Server
-bash
+```
+
+### 3) รัน Backend API
+
+```bash
 dotnet run --project APi
-แอปพลิเคชันจะเปิดทำงานที่ https://localhost:7001 (หรือตามพอร์ตที่ระบบกำหนด) สามารถเข้าใช้งานหน้า Swagger UI ได้ที่:
+```
 
-text
+จากนั้นเข้าใช้งาน Swagger ได้ที่:
+
+```text
 https://localhost:7001/swagger
-
+```
