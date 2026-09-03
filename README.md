@@ -1,327 +1,181 @@
-# AssetFlow Management System Backend Project
-
-ระบบ Backend API สำหรับบริหารจัดการพัสดุ ครุภัณฑ์ การจัดซื้อจัดจ้าง และคลังวัสดุ  
-พัฒนาด้วย **.NET 9 (ASP.NET Core Web API)** พร้อมระบบยืนยันตัวตน (**ASP.NET Core Identity / JWT**), **Entity Framework Core (SQL Server)**, **AutoMapper**, **Repository & Unit of Work Pattern**, **Specification Pattern** และระบบจัดการไฟล์แนบ
-
----
-
-## 📌 ภาพรวมโปรเจกต์
-
-โปรเจกต์นี้ออกแบบตามแนวทาง **Clean Architecture** แบ่งชั้นการทำงานเป็น 3 ส่วนหลัก:
-
-- **API Layer** — รับคำขอจากผู้ใช้งานและส่งผลลัพธ์กลับ
-- **Core Layer** — เก็บ Entity, Interface และ Business Domain
-- **Infrastructure Layer** — จัดการฐานข้อมูล, Repository, Services และการเชื่อมต่อภายนอก
+# 📦 AssetFlow Management System
+> **ระบบบริหารจัดการพัสดุ ครุภัณฑ์ การจัดซื้อจัดจ้าง และคลังวัสดุ (Full-Stack Web Application)**
+> พัฒนาด้วย **.NET 9 Web API** (Backend) และ **Angular 21** (Frontend) ตามสถาปัตยกรรม Clean Architecture และ Modern Component-Driven Development
 
 ---
 
-## 🛠️ เทคโนโลยีที่ใช้
-
-- **Framework:** .NET 9 (ASP.NET Core Web API)
-- **Database:** SQL Server
-- **ORM:** Entity Framework Core 9
-- **Authentication:** ASP.NET Core Identity + JWT Bearer Token
-- **Object Mapping:** AutoMapper
-- **Architecture:** Clean Architecture, Generic Repository, Unit of Work, Specification Pattern
-- **API Documentation:** Swagger / OpenAPI
-- **Payment Integration:** Stripe.net
+## 📑 สารบัญ (Table of Contents)
+- [📖 ภาพรวมระบบ (System Overview)](#-ภาพรวมระบบ-system-overview)
+- [🖥️ 1. Backend System (.NET 9 Web API)](#️-1-backend-system-net-9-web-api)
+  - [📁 โครงสร้างโฟลเดอร์แบบละเอียด (Folder Structure)](#-โครงสร้างโฟลเดอร์แบบละเอียด-folder-structure)
+  - [🗄️ สรุปโครงสร้างฐานข้อมูล (Database Schema & Tables)](#️-สรุปโครงสร้างฐานข้อมูล-database-schema--tables)
+  - [📌 การจำแนกประเภทตาราง (Classification of Database Tables)](#-การจำแนกประเภทตาราง-classification-of-database-tables)
+  - [🛠️ เทคโนโลยีที่ใช้ (Backend Tech Stack)](#️-เทคโนโลยีที่ใช้-backend-tech-stack)
+- [💻 2. Frontend System (Angular 21 Web Application)](#-2-frontend-system-angular-21-web-application)
+  - [📁 โครงสร้างโฟลเดอร์แบบละเอียด (Folder Structure)](#-โครงสร้างโฟลเดอร์แบบละเอียด-folder-structure-1)
+  - [🌟 คุณสมบัติและฟังก์ชันการทำงานหลัก (Key Features)](#-คุณสมบัติและฟังก์ชันการทำงานหลัก-key-features)
+  - [🛠️ เทคโนโลยีและไลบรารีที่ใช้ (Frontend Tech Stack & Libraries)](#️-เทคโนโลยีและไลบรารีที่ใช้-frontend-tech-stack--libraries)
+- [🚀 3. ขั้นตอนการติดตั้งและเริ่มใช้งาน (Getting Started)](#-3-ขั้นตอนการติดตั้งและเริ่มใช้งาน-getting-started)
 
 ---
 
-## 📁 โครงสร้างโฟลเดอร์
+## 📖 ภาพรวมระบบ (System Overview)
+
+**AssetFlow Management System** คือระบบบริหารจัดการพัสดุและคลังสินค้าครบวงจร ออกแบบมาเพื่อรองรับกระบวนการทำงานของหน่วยงานภาครัฐ สถาบันการศึกษา หรือองค์กรขนาดใหญ่ ครอบคลุมวงจรชีวิตของพัสดุและทรัพย์สิน ตั้งแต่การจัดซื้อจัดจ้าง การรับเข้าคลัง การเบิกจ่ายวัสดุสิ้นเปลือง การควบคุมสต็อกการ์ดแบบ Real-time การถือครองและยืมครุภัณฑ์ การส่งซ่อมบำรุง การตัดจำหน่าย ตลอดจนระบบพอร์ตอลสาธารณะสำหรับสแกน **QR Code** ตรวจสอบครุภัณฑ์
+
+---
+
+## 🖥️ 1. Backend System (.NET 9 Web API)
+
+### 📁 โครงสร้างโฟลเดอร์แบบละเอียด (Folder Structure)
 
 ```text
 AssetFlowManagementSystem/
-├── APi/                         # โปรเจกต์หลักของ Web API
-│   ├── Controllers/             # API Controllers
-│   ├── DTOs/                    # Data Transfer Objects
-│   ├── Errors/                  # รูปแบบการจัดการ Error Response
-│   ├── Extensions/              # Service Extensions
-│   ├── Helper/                  # AutoMapper Profiles
-│   ├── Middleware/              # Custom Middleware
-│   ├── RequestHelpers/          # Helper สำหรับ Paging
-│   ├── Program.cs               # จุดเริ่มต้นของโปรเจกต์
-│   └── APi.csproj               # ไฟล์โปรเจกต์
+├── APi/                                          # โครงสร้างโปรเจกต์หลัก (Web API Project)
+│   ├── Controllers/                               # [API Controllers] รองรับ HTTP Requests (35 Controllers)
+│   │   ├── AccountController.cs                   # ระบบเข้าสู่ระบบ / ลงทะเบียน / โปรไฟล์ผู้ใช้งาน
+│   │   ├── AcquisitionMethodController.cs         # จัดการข้อมูลวิธีการได้มาของทรัพย์สิน
+│   │   ├── AssetCategoriesController.cs           # จัดการข้อมูลหมวดหมู่ครุภัณฑ์
+│   │   ├── AssetItemController.cs                 # จัดการข้อมูลครุภัณฑ์หลัก
+│   │   ├── AssetRepairController.cs               # จัดการประวัติและการแจ้งซ่อมแซมครุภัณฑ์
+│   │   ├── AssetSubItemHistoryController.cs      # จัดการประวัติการโอนย้าย/ใช้งานครุภัณฑ์ย่อย
+│   │   ├── AssetUsageTypeController.cs            # จัดการประเภทการใช้งานครุภัณฑ์
+│   │   ├── AssetWithdrawalController.cs           # จัดการระบบเบิกจ่าย/ยืม/ครอบครองครุภัณฑ์
+│   │   ├── AssetsubItemController.cs              # จัดการข้อมูลครุภัณฑ์ย่อย (Sub-Items)
+│   │   ├── BaseApiController.cs                  # Base Controller หลักสำหรับกำหนด API Route
+│   │   ├── Budget_sourcesController.cs            # จัดการข้อมูลแหล่งเงินงบประมาณ
+│   │   ├── BuggyController.cs                    # ทดสอบระบบการคืนค่า Error Response
+│   │   ├── DepartmentsController.cs              # จัดการข้อมูลแผนก / คณะ / หน่วยงาน
+│   │   ├── Expense_typesController.cs            # จัดการข้อมูลประเภทค่าใช้จ่าย
+│   │   ├── FallbackController.cs                 # รองรับการส่งต่อ Single Page Application (SPA Fallback)
+│   │   ├── Fiscal_yearsController.cs             # จัดการข้อมูลปีงบประมาณ
+│   │   ├── Fund_categoriesController.cs          # จัดการข้อมูลหมวดหมู่เงิน
+│   │   ├── HiredetailsController.cs              # จัดการรายละเอียดสัญญาจัดจ้างทำของ
+│   │   ├── MaterialIssueDetailController.cs      # จัดการรายการเบิกจ่ายวัสดุออกจากคลัง
+│   │   ├── MaterialItemController.cs              # จัดการทะเบียนพรรณนาวัสดุสิ้นเปลือง
+│   │   ├── MaterialReceiveDetailController.cs    # จัดการรายการตรวจรับวัสดุเข้าคลัง
+│   │   ├── MaterialStockCardController.cs        # จัดการข้อมูลสต็อกการ์ดคลังวัสดุแบบ Real-time
+│   │   ├── MaterialUnitController.cs             # จัดการหน่วยนับของวัสดุ
+│   │   ├── MaterialWithdrawalController.cs       # จัดการเอกสารใบขอเบิกวัสดุ
+│   │   ├── Operation_typesController.cs          # จัดการประเภทการดำเนินงานจัดซื้อจัดจ้าง
+│   │   ├── PositionsController.cs                # จัดการตำแหน่งงานของบุคลากร
+│   │   ├── PrefixesController.cs                 # จัดการคำนำหน้าชื่อ
+│   │   ├── Procurement_recordsController.cs      # จัดการเอกสารบันทึกการจัดซื้อจัดจ้างหลัก
+│   │   ├── ProjectsController.cs                 # จัดการข้อมูลโครงการ/แผนงาน
+│   │   ├── PublicPortalController.cs              # API สาธารณะสำหรับระบบสแกน QR Code ตรวจสอบครุภัณฑ์
+│   │   ├── RolesController.cs                    # จัดการบทบาทและสิทธิ์การใช้งาน (Roles)
+│   │   ├── StaffController.cs                    # จัดการข้อมูลบุคลากร / เจ้าหน้าที่
+│   │   ├── SystemSettingsController.cs            # จัดการการตั้งค่าระบบ
+│   │   ├── UsersController.cs                    # จัดการข้อมูลผู้ใช้งานในระบบ
+│   │   └── VendorsController.cs                  # จัดการข้อมูลบริษัท / ผู้ขาย / ผู้รับจ้าง / คู่ค้า
+│   │
+│   ├── DTOs/                                     # [Data Transfer Objects] รับ-ส่งข้อมูล API (23 DTOs)
+│   │   ├── AssetItemDto.cs                       # DTO ข้อมูลครุภัณฑ์หลัก
+│   │   ├── AssetRepairDto.cs                     # DTO การแจ้งซ่อมแซมครุภัณฑ์
+│   │   ├── AssetSubItemDisposalDto.cs            # DTO การตัดจำหน่ายครุภัณฑ์ย่อย
+│   │   ├── AssetSubItemDto.cs                    # DTO ข้อมูลครุภัณฑ์ย่อย
+│   │   ├── AssetSubItemHistoryDto.cs             # DTO ประวัติการโอนย้ายครุภัณฑ์ย่อย
+│   │   ├── AssetWithdrawalDto.cs                 # DTO การเบิก/ยืมครุภัณฑ์
+│   │   ├── HireDetailDto.cs                      # DTO รายละเอียดสัญญาจ้าง
+│   │   ├── MaterialIssueDetailDto.cs             # DTO การตัดจ่ายวัสดุ
+│   │   ├── MaterialItemDto.cs                    # DTO ทะเบียนพรรณนาวัสดุ
+│   │   ├── MaterialReceiveDetailDto.cs           # DTO การรับวัสดุเข้าคลัง
+│   │   ├── MaterialStockCardDto.cs               # DTO รายงานสต็อกการ์ด
+│   │   ├── MaterialWithdrawal.cs                 # DTO เอกสารใบขอเบิกวัสดุ
+│   │   ├── ProcurementAssetFullCreateDto.cs      # DTO สร้างจัดซื้อพร้อมลงทะเบียนครุภัณฑ์
+│   │   ├── ProcurementHireFullCreateDto.cs       # DTO สร้างจัดซื้อพร้อมสัญญาจ้าง
+│   │   ├── ProcurementMaterialFullCreateDto.cs   # DTO สร้างจัดซื้อพร้อมรับเข้าวัสดุ
+│   │   ├── ProcurementRecordStatusHistoryDto.cs  # DTO ประวัติสถานะจัดซื้อจัดจ้าง
+│   │   ├── Procurement_recordsDto.cs             # DTO บันทึกการจัดซื้อจัดจ้าง
+│   │   ├── ProjectDto.cs                         # DTO ข้อมูลโครงการ
+│   │   ├── PublicPortalDtos.cs                   # DTO ข้อมูลสาธารณะสแกน QR Code
+│   │   ├── RegisterDto.cs                        # DTO ลงทะเบียนผู้ใช้งานใหม่
+│   │   ├── RoleDto.cs                            # DTO จัดการสิทธิ์และบทบาท
+│   │   ├── StaffDto.cs                           # DTO ข้อมูลบุคลากร
+│   │   └── UserDto.cs                            # DTO ข้อมูลผู้ใช้งานและ Token
+│   │
+│   ├── Errors/                                   # [Error Handling] รูปแบบ HTTP Response สำหรับ Error
+│   │   ├── ApiException.cs                       # Response Exception สำหรับ Developer/Production
+│   │   ├── ApiResponse.cs                        # Standard API Response (StatusCode & Message)
+│   │   └── ApiValidationErrorResponse.cs         # Response สำหรับ Model State Validation Failed
+│   │
+│   ├── Extensions/                               # [Service Extensions]
+│   │   ├── ApplicationServicesExtensions.cs     # ลงทะเบียน Repositories, AutoMapper, CORS, DbContext
+│   │   └── IdentityServiceExtensions.cs          # ลงทะเบียน ASP.NET Core Identity & JWT Configuration
+│   │
+│   ├── Helper/                                   # [Object Mapping Profiles]
+│   │   └── MappingProfiles.cs                    # AutoMapper Configurations (Entities <-> DTOs)
+│   │
+│   ├── Middleware/                               # [Custom Middlewares]
+│   │   └── ExceptionMiddleware.cs                # Middleware ดักจับ Unhandled Exceptions
+│   │
+│   ├── RequestHelpers/                           # [Query Helpers]
+│   │   └── Pagination.cs                         # Class Generic สำหรับส่งคืนผลลัพธ์แบบแบ่งหน้า (Paging)
+│   │
+│   ├── Program.cs                                # จุดเริ่มต้นโปรเจกต์ (DI Setup, Pipeline, Middleware)
+│   └── APi.csproj                                # ไฟล์คอนฟิกและ Dependencies ของ Web API Project
 │
-├── Core/                        # Domain Layer
-│   ├── Entities/                # Entity Models
-│   ├── Interfaces/              # Interface สำหรับ Repository / Specification / Unit of Work
-│   └── Core.csproj
+├── Core/                                         # [Domain Layer] Center Layer ของ Clean Architecture
+│   ├── Entities/                                 # [Domain Models / Entity Definitions] (32 Entities)
+│   │   ├── 📘 [Master Data Models]
+│   │   │   ├── AcquisitionMethod.cs              # โมเดลวิธีการได้มาของทรัพย์สิน
+│   │   │   ├── AppUser.cs                        # โมเดลผู้ใช้งานระบบ (สืบทอดจาก IdentityUser)
+│   │   │   ├── AssetCategory.cs                  # โมเดลหมวดหมู่ครุภัณฑ์
+│   │   │   ├── AssetItem.cs                      # โมเดลครุภัณฑ์หลัก
+│   │   │   ├── AssetSubItem.cs                   # โมเดลครุภัณฑ์ย่อย
+│   │   │   ├── asset_usage_types.cs              # โมเดลประเภทการใช้งานครุภัณฑ์
+│   │   │   ├── Budget_sources.cs                 # โมเดลแหล่งเงินงบประมาณ
+│   │   │   ├── Departments.cs                    # โมเดลแผนก/คณะ/หน่วยงาน
+│   │   │   ├── Expense_types.cs                  # โมเดลประเภทค่าใช้จ่าย
+│   │   │   ├── Fiscal_years.cs                   # โมเดลปีงบประมาณ
+│   │   │   ├── Fund_categories.cs                # โมเดลหมวดหมู่เงิน
+│   │   │   ├── MaterialItem.cs                   # โมเดลทะเบียนพรรณนาวัสดุ
+│   │   │   ├── MaterialUnit.cs                   # โมเดลหน่วยนับวัสดุ
+│   │   │   ├── Operation_types.cs                # โมเดลประเภทการดำเนินงานจัดซื้อ
+│   │   │   ├── Positions.cs                      # โมเดลตำแหน่งงาน
+│   │   │   ├── Prefixes.cs                       # โมเดลคำนำหน้าชื่อ
+│   │   │   ├── Projects.cs                       # โมเดลโครงการ/แผนงาน
+│   │   │   ├── Staffs.cs                         # โมเดลข้อมูลบุคลากร/เจ้าหน้าที่
+│   │   │   └── Vendors.cs                        # โมเดลบริษัท/คู่ค้า/ผู้รับจ้าง
+│   │   │
+│   │   ├── 🔄 [Transaction Data Models]
+│   │   │   ├── AssetRepair.cs                    # โมเดลการแจ้งซ่อมและประวัติซ่อมแซมครุภัณฑ์
+│   │   │   ├── AssetSubItemDisposal.cs           # โมเดลการตัดจำหน่ายครุภัณฑ์ย่อย
+│   │   │   ├── AssetSubItemHistory.cs            # โมเดลประวัติการย้าย/ใช้งานครุภัณฑ์ย่อย
+│   │   │   ├── AssetWithdrawal.cs                # โมเดลการเบิก/ยืม/ครอบครองครุภัณฑ์
+│   │   │   ├── HireDetail.cs                     # โมเดลรายละเอียดสัญญาจัดจ้างทำของ
+│   │   │   ├── MaterialIssueDetail.cs            # โมเดลรายการจ่ายวัสดุออกจากคลัง
+│   │   │   ├── MaterialReceiveDetail.cs          # โมเดลรายการรับวัสดุเข้าคลัง
+│   │   │   ├── MaterialStockCard.cs              # โมเดลสต็อกการ์ดคลังวัสดุ (Inventory Ledger)
+│   │   │   ├── MaterialWithdrawal.cs             # โมเดลเอกสารใบขอเบิกวัสดุ
+│   │   │   ├── ProcurementRecordStatusHistory.cs # โมเดลประวัติการเปลี่ยนสถานะจัดซื้อจัดจ้าง
+│   │   │   └── Procurement_records.cs            # โมเดลบันทึกการจัดซื้อจัดจ้างหลัก
+│   │   │
+│   │   └── ⚙️ [System & Config Models]
+│   │       ├── BaseEntity.cs                     # Class พื้นฐานสำหรับ Entities (มี Id)
+│   │       └── SystemSetting.cs                  # โมเดลการตั้งค่าระบบ
+│   │
+│   ├── Interfaces/                               # [Service Interfaces & Contracts]
+│   │   ├── IGenericRepository.cs                 # Interface สำหรับ Generic Repository CRUD
+│   │   ├── ISpecification.cs                     # Interface สำหรับ Specification Pattern Query
+│   │   ├── IUnitOfWork.cs                        # Interface สำหรับ Unit of Work Transaction
+│   │   └── Specifications/                       # Implementation ของ Specification Pattern
+│   │       ├── BaseSpecification.cs              # Core Specification Logic
+│   │       └── PagingParams.cs                   # Standard Parameters สำหรับการแบ่งหน้า
+│   │
+│   └── Core.csproj                               # ไฟล์คอนฟิก Core Class Library
 │
-└── Infrastructure/              # Data Access Layer
-    ├── Config/                  # EF Core Configurations
-    ├── Data/                    # DbContext, Repository, UnitOfWork, Seed Data
-    ├── Migrations/              # EF Core Migrations
-    ├── Services/                # Infrastructure Services
-    └── Infrastructure.csproj
-```
-
----
-
-## 🗄️ โครงสร้างฐานข้อมูลโดยสรุป
-
-ฐานข้อมูลของระบบออกแบบให้รองรับ 3 กลุ่มหลัก:
-
-### 1) Master Data
-ข้อมูลอ้างอิงหลักที่ใช้ในระบบ
-
-- AspNetUsers
-- Departments
-- Positions
-- Prefixes
-- Staffs
-- Vendors
-- Fiscal_years
-- Fund_categories
-- Budget_sources
-- Expense_types
-- Operation_types
-- Projects
-- AssetCategories
-- AcquisitionMethods
-- AssetUsageTypes
-- MaterialUnits
-- AssetItems
-- AssetSubItems
-- MaterialItems
-
-### 2) Transaction Data
-ข้อมูลรายการธุรกรรมหรือเหตุการณ์ที่เกิดขึ้นในระบบ
-
-- Procurement_records
-- HireDetails
-- ProcurementRecordStatusHistories
-- AssetWithdrawals
-- AssetRepairs
-- AssetSubItemHistories
-- AssetSubItemDisposals
-- MaterialWithdrawals
-- MaterialReceiveDetails
-- MaterialIssueDetails
-- MaterialStockCards
-
-### 3) System & Config Data
-ข้อมูลตั้งค่าและสิทธิ์ของระบบ
-
-- SystemSettings
-- AspNetRoles
-- AspNetUserRoles
-
----
-
-## 📋 รายการตารางหลัก
-
-### 1. AspNetUsers
-ตารางผู้ใช้งานระบบ
-
-- **Primary Key:** Id
-- **ฟิลด์สำคัญ:** UserName, Email, PasswordHash, PhoneNumber, DisplayName
-- **ความสัมพันธ์:** เชื่อมกับ Staffs และ AspNetUserRoles
-
-### 2. Departments
-ตารางข้อมูลแผนก / คณะ / หน่วยงาน
-
-- **Primary Key:** department_id
-- **ฟิลด์สำคัญ:** department_name
-- **ความสัมพันธ์:** เชื่อมกับ Staffs, Procurement_records, MaterialStockCards
-
-### 3. Positions
-ตารางตำแหน่งงาน
-
-- **Primary Key:** position_id
-- **ฟิลด์สำคัญ:** position_name
-- **ความสัมพันธ์:** เชื่อมกับ Staffs
-
-### 4. Prefixes
-ตารางคำนำหน้าชื่อ
-
-- **Primary Key:** prefix_id
-- **ฟิลด์สำคัญ:** prefix_name, short_name
-- **ความสัมพันธ์:** เชื่อมกับ Staffs
-
-### 5. Staffs
-ตารางทะเบียนบุคลากร
-
-- **Primary Key:** staff_id
-- **Foreign Keys:** prefix_id, position_id, department_id
-- **ฟิลด์สำคัญ:** first_name, last_name, email, phone_number
-
-### 6. Vendors
-ตารางผู้ขาย / ผู้รับจ้าง / คู่ค้า
-
-- **Primary Key:** vendor_id
-- **ฟิลด์สำคัญ:** vendor_name, tax_id, address, phone_number, contact_name
-
-### 7. Fiscal_years
-ตารางปีงบประมาณ
-
-- **Primary Key:** fiscal_year_id
-- **ฟิลด์สำคัญ:** year_name, start_date, end_date, is_active
-
-### 8. Fund_categories
-ตารางหมวดหมู่เงินงบประมาณ
-
-- **Primary Key:** fund_category_id
-- **ฟิลด์สำคัญ:** fund_category_name
-
-### 9. Budget_sources
-ตารางแหล่งเงินงบประมาณ
-
-- **Primary Key:** budget_source_id
-- **ฟิลด์สำคัญ:** budget_source_name
-
-### 10. Expense_types
-ตารางประเภทค่าใช้จ่าย
-
-- **Primary Key:** expense_type_id
-- **ฟิลด์สำคัญ:** expense_type_name
-
-### 11. Operation_types
-ตารางประเภทการดำเนินงานจัดซื้อจัดจ้าง
-
-- **Primary Key:** operation_type_id
-- **ฟิลด์สำคัญ:** operation_type_name
-
-### 12. Projects
-ตารางโครงการ / แผนงาน
-
-- **Primary Key:** project_id
-- **ฟิลด์สำคัญ:** project_code, project_name, description
-
-### 13. AssetCategories
-ตารางหมวดหมู่ครุภัณฑ์
-
-- **Primary Key:** asset_category_id
-- **ฟิลด์สำคัญ:** category_code, category_name
-
-### 14. AcquisitionMethods
-ตารางวิธีการได้มาของทรัพย์สิน
-
-- **Primary Key:** acquisition_method_id
-- **ฟิลด์สำคัญ:** method_name
-
-### 15. AssetUsageTypes
-ตารางประเภทการใช้งานครุภัณฑ์
-
-- **Primary Key:** asset_usage_type_id
-- **ฟิลด์สำคัญ:** usage_type_name
-
-### 16. MaterialUnits
-ตารางหน่วยนับวัสดุ
-
-- **Primary Key:** unit_id
-- **ฟิลด์สำคัญ:** unit_name
-
-### 17. AssetItems
-ตารางทะเบียนครุภัณฑ์หลัก
-
-- **Primary Key:** asset_item_id
-- **Foreign Keys:** procurement_record_id, asset_category_id, acquisition_method_id, department_id
-- **ฟิลด์สำคัญ:** asset_code, asset_name, price, useful_life, received_date
-
-### 18. AssetSubItems
-ตารางทะเบียนครุภัณฑ์ย่อย
-
-- **Primary Key:** asset_sub_item_id
-- **Foreign Key:** asset_item_id
-- **ฟิลด์สำคัญ:** sub_item_code, serial_number, status, storage_location
-
-### 19. MaterialItems
-ตารางทะเบียนวัสดุสิ้นเปลือง
-
-- **Primary Key:** material_item_id
-- **Foreign Key:** unit_id
-- **ฟิลด์สำคัญ:** material_code, material_name, unit_price, min_quantity, max_quantity
-
-### 20. Procurement_records
-ตารางบันทึกเอกสารการจัดซื้อจัดจ้างหลัก
-
-- **Primary Key:** procurement_record_id
-- **Foreign Keys:** fiscal_year_id, operation_type_id, expense_type_id, department_id, vendor_id, fund_category_id, budget_source_id, staff_id, project_id
-- **ฟิลด์สำคัญ:** document_no, document_date, inspection_date, total_amount, amount_text, status, reference_no, attachment_file_path
-
-### 21. HireDetails
-ตารางรายละเอียดสัญญาจัดจ้างทำของ
-
-- **Primary Key:** hire_detail_id
-- **Foreign Key:** procurement_record_id
-- **ฟิลด์สำคัญ:** contract_no, start_date, end_date, contract_amount, work_description
-
-### 22. ProcurementRecordStatusHistories
-ตารางประวัติการเปลี่ยนสถานะเอกสารจัดซื้อจัดจ้าง
-
-- **Primary Key:** status_history_id
-- **Foreign Key:** procurement_record_id
-- **ฟิลด์สำคัญ:** previous_status, new_status, changed_at, changed_by, remarks
-
-### 23. AssetWithdrawals
-ตารางประวัติการเบิก / ยืมครุภัณฑ์
-
-- **Primary Key:** procurement_withdrawal_id
-- **Foreign Keys:** procurement_record_id, staff_id
-- **ฟิลด์สำคัญ:** withdrawal_document_no, withdrawal_date, end_date, storage_location, purpose
-
-### 24. AssetRepairs
-ตารางแจ้งซ่อมครุภัณฑ์
-
-- **Primary Key:** asset_repair_id
-- **Foreign Keys:** procurement_withdrawal_id, staff_id
-- **ฟิลด์สำคัญ:** repair_document_no, repair_date, problem_description, repair_shop_name, repair_cost, status
-
-### 25. AssetSubItemHistories
-ตารางประวัติการเคลื่อนย้ายครุภัณฑ์ย่อย
-
-- **Primary Key:** sub_item_history_id
-- **Foreign Keys:** asset_sub_item_id, staff_id, department_id
-- **ฟิลด์สำคัญ:** action_type, action_date, location, remarks
-
-### 26. AssetSubItemDisposals
-ตารางตัดจำหน่ายครุภัณฑ์ย่อย
-
-- **Primary Key:** sub_item_disposal_id
-- **Foreign Key:** asset_sub_item_id
-- **ฟิลด์สำคัญ:** disposal_date, disposal_method, disposal_reason, approved_by, quantity_disposed
-
-### 27. MaterialWithdrawals
-ตารางใบขอเบิกวัสดุ
-
-- **Primary Key:** material_withdrawal_id
-- **Foreign Keys:** staff_id, procurement_record_id
-- **ฟิลด์สำคัญ:** withdrawal_document_no, receive_document_no, remark
-
-### 28. MaterialReceiveDetails
-ตารางรายการตรวจรับวัสดุเข้าคลัง
-
-- **Primary Key:** receive_detail_id
-- **Foreign Keys:** procurement_record_id, material_item_id
-- **ฟิลด์สำคัญ:** item_no, quantity, unit_price, total_amount
-
-### 29. MaterialIssueDetails
-ตารางรายการตัดจ่ายวัสดุออกจากคลัง
-
-- **Primary Key:** issue_detail_id
-- **Foreign Keys:** procurement_record_id, material_item_id, staff_id
-- **ฟิลด์สำคัญ:** issue_date, quantity, unit_price, total_amount
-
-### 30. MaterialStockCards
-ตารางสต็อกการ์ดวัสดุ
-
-- **Primary Key:** stock_card_id
-- **Foreign Keys:** material_item_id, receive_detail_id, issue_detail_id, fiscal_year_id, department_id
-- **ฟิลด์สำคัญ:** transaction_date, transaction_type, reference_document_no, quantity_in, quantity_out, balance_qty, unit_price, total_amount
-
-### 31. SystemSettings
-ตารางตั้งค่าระบบ
-
-- **Primary Key:** id
-- **ฟิลด์สำคัญ:** system_name, system_code, setting_value
-
----
-
-## ✅ จุดเด่นของระบบ
-
-- รองรับงานพัสดุ ครุภัณฑ์ และวัสดุแบบครบวงจร
-- แยกโครงสร้างตาม Clean Architecture ชัดเจน
-- มีระบบยืนยันตัวตนและสิทธิ์การใช้งาน
-- รองรับการจัดการไฟล์แนบ
-- ออกแบบฐานข้อมูลรองรับงานจัดซื้อจัดจ้างและคลังวัสดุ
+└── Infrastructure/                               # [Data Access & Infrastructure Layer]
+    ├── Config/                                   # [EF Core Configurations] การกำหนด Fluent API
+    ├── Data/                                     # [Data Logic & Repository Implementation]
+    │   ├── GenericRepository.cs                  # Generic Repository Implementation
+    │   ├── SpecificationEvaluator.cs            # Evaluator แปลง Specification เป็น LINQ Query
+    │   ├── StoreContext.cs                       # EF Core DbContext Class (IdentityDbContext)
+    │   ├── StoreContextSeed.cs                   # Logic การลงข้อมูลเริ่มต้น (Data Seeding)
+    │   ├── UnitOfWork.cs                         # Unit of Work Implementation
+    │   └── SeedData/                             # โฟลเดอร์จัดเก็บไฟล์ Seed Data JSON
+    │
+    ├── Migrations/                               # [EF Core Migrations] ประวัติการเปลี่ยนโครงสร้าง DB
+    ├── Services/                                 # [Infrastructure Services]
+    │   └── FileService.cs                        # บริการจัดการอัปโหลด/บันทึก/ลบไฟล์แนบ
+    └── Infrastructure.csproj                     # ไฟล์คอนฟิก Infrastructure Class Library
