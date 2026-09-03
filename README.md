@@ -5,6 +5,17 @@
 
 ---
 
+## 📚 สารบัญ (Table of Contents)
+
+- [📌 ภาพรวมโปรเจกต์](#-ภาพรวมโปรเจกต์)
+- [🛠️ เทคโนโลยีที่ใช้](#️-เทคโนโลยีที่ใช้)
+- [📁 โครงสร้างโฟลเดอร์](#-โครงสร้างโฟลเดอร์)
+- [🗄️ โครงสร้างฐานข้อมูลโดยสรุป](#️-โครงสร้างฐานข้อมูลโดยสรุป)
+- [📋 รายการตารางหลัก](#-รายการตารางหลัก)
+- [✅ จุดเด่นของระบบ](#-จุดเด่นของระบบ)
+
+---
+
 ## 📌 ภาพรวมโปรเจกต์
 
 โปรเจกต์นี้ออกแบบตามแนวทาง **Clean Architecture** แบ่งชั้นการทำงานเป็น 3 ส่วนหลัก:
@@ -62,7 +73,7 @@ AssetFlowManagementSystem/
 
 ฐานข้อมูลของระบบออกแบบให้รองรับ 3 กลุ่มหลัก:
 
-### 1) Master Data
+### 1) Master Data (ข้อมูลอ้างอิงหลัก)
 ข้อมูลอ้างอิงหลักที่ใช้ในระบบ
 
 - AspNetUsers
@@ -85,7 +96,7 @@ AssetFlowManagementSystem/
 - AssetSubItems
 - MaterialItems
 
-### 2) Transaction Data
+### 2) Transaction Data (ข้อมูลธุรกรรม)
 ข้อมูลรายการธุรกรรมหรือเหตุการณ์ที่เกิดขึ้นในระบบ
 
 - Procurement_records
@@ -100,7 +111,7 @@ AssetFlowManagementSystem/
 - MaterialIssueDetails
 - MaterialStockCards
 
-### 3) System & Config Data
+### 3) System & Config Data (ข้อมูลตั้งค่า/สิทธิ์ระบบ)
 ข้อมูลตั้งค่าและสิทธิ์ของระบบ
 
 - SystemSettings
@@ -110,6 +121,8 @@ AssetFlowManagementSystem/
 ---
 
 ## 📋 รายการตารางหลัก
+
+### กลุ่ม Master Data Tables (1-19)
 
 ### 1. AspNetUsers
 ตารางผู้ใช้งานระบบ
@@ -233,6 +246,8 @@ AssetFlowManagementSystem/
 - **Foreign Key:** unit_id
 - **ฟิลด์สำคัญ:** material_code, material_name, unit_price, min_quantity, max_quantity
 
+### กลุ่ม Transaction Data Tables (20-30)
+
 ### 20. Procurement_records
 ตารางบันทึกเอกสารการจัดซื้อจัดจ้างหลัก
 
@@ -309,6 +324,8 @@ AssetFlowManagementSystem/
 - **Primary Key:** stock_card_id
 - **Foreign Keys:** material_item_id, receive_detail_id, issue_detail_id, fiscal_year_id, department_id
 - **ฟิลด์สำคัญ:** transaction_date, transaction_type, reference_document_no, quantity_in, quantity_out, balance_qty, unit_price, total_amount
+
+### กลุ่ม System & Config Tables (31+)
 
 ### 31. SystemSettings
 ตารางตั้งค่าระบบ
